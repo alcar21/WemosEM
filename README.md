@@ -27,7 +27,7 @@ Password is updatable in configuration system tab.
 - Update Voltaje by MQTT topic.
 - NTP to setup timezone.
 
-####Components: 
+#### Components: 
 - Wemos D1 Mini
 - [ESP8266 Mains Current Sensor](https://www.ebay.es/itm/ESP8266-Mains-Current-Sensor-Wemos-Current-transformer-SCT013-100A-50mA/133077015640)
 - Current transformer SCT013 (Ebay or Aliexpress)
