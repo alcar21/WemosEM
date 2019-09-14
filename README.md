@@ -33,9 +33,9 @@ Password is updatable in configuration system tab.
 - Current transformer SCT013 (Ebay or Aliexpress)
 - Optional case: https://www.thingiverse.com/thing:3544702
 
-*Warning:* If you use calibrated clamp, remove resistance R1 from mains current sensor.
+**WARNING:** If you use calibrated clamp, **remove resistance R1** from mains current sensor.
 
-## Setup in Home Assistant (withoth MQTT autodiscovery)
+## Setup in Home Assistant (without MQTT autodiscovery)
     
     sensor:
     - platform: mqtt
