@@ -41,19 +41,19 @@ Password is updatable in configuration system tab.
     
     sensor:
     - platform: mqtt
-      state_topic: "wemos/wemosEM-29513D/power"
+      state_topic: "wemos/wemosEM-XXXXXX/power"
       name: WemosEM-Amperaje
       icon: mdi:current-ac
       unit_of_measurement: "A"
       value_template: "{{ value_json.current }}"
     - platform: mqtt
-      state_topic: "wemos/wemosEM-29513D/power"
+      state_topic: "wemos/wemosEM-XXXXXX/power"
       name: WemosEM-Consumo Actual
       icon: mdi:power-plug
       unit_of_measurement: "W"
       value_template: "{{ value_json.watios }}"
     - platform: mqtt
-      state_topic: "wemos/wemosEM-29513D/power"
+      state_topic: "wemos/wemosEM-XXXXXX/power"
       name: WemosEM-KWh
       icon: mdi:power-plug
       unit_of_measurement: "KWh"
@@ -72,7 +72,7 @@ if you have a Shelly EM, add a automation in Home assistant:
         action:
         - service: mqtt.publish
           data_template:
-            topic: "wemos-cmd/wemosEM-29513D/voltage"
+            topic: "wemos-cmd/wemosEM-XXXXXX/voltage"
             payload: '{{ trigger.payload }}'
 
 if you have a device with Tasmota, add a automation in Home assistant:
@@ -86,7 +86,7 @@ if you have a device with Tasmota, add a automation in Home assistant:
         action:
         - service: mqtt.publish
           data_template:
-            topic: "wemos-cmd/wemosEM-29513D/voltaje"
+            topic: "wemos-cmd/wemosEM-XXXXXX/voltaje"
             payload: "{{ trigger.payload_json['ENERGY'].Voltage }}"
 
 ## Developers
