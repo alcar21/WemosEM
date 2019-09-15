@@ -14,12 +14,6 @@ If the connection fails, it attempts to reconnect to the WiFi and/or the MQTT Br
 
 Original Gerber files for the PCB layout and the source files for Kicad are included, although there may be issues with the custom libraries used.
 
-Device creates a WiFi named WemosEM-XXXXXX. You can use Phone or PC to setup. Wifi Password: infinito&masalla
-* Default user: wemosem
-* Default password: infinito&masalla
-
-Password is updatable in configuration system tab.
-
 **Software features:**
 
 - Easy setup.
@@ -36,6 +30,49 @@ Password is updatable in configuration system tab.
 - Optional case: https://www.thingiverse.com/thing:3544702
 
 **WARNING:** If you use calibrated clamp, **remove resistance R1** from mains current sensor.
+
+## Firmware installation and first setup
+
+#### Flashing: 
+
+<img src="images/installation01.jpg" alt="installation01" align="right" width="200"/>
+
+Download latest [release](https://github.com/alcar21/WemosEM/releases)
+You can flash using software [nodemcu-pyflasher](https://github.com/marcelstoer/nodemcu-pyflasher/releases)
+
+1. Select Serial port (COM# port) where your serial-to-USB or NodeMCU/D1 mini is connected. Leave on auto-select if not sure.
+2. Browse to the binary you downloaded from WemosEM releases.
+3. Set Baud rate to 115200 and **Flash mode to DOUT**. Erase flash to **yes** if it is the first time flashing WemosEM on the device or you're experiencing issues with existing flash. If you're upgrading WemosEM set to no.
+4. Click Flash NodeMCU and watch the progress in console.
+
+If the flash was successful the console will display:
+  Firmware successfully flashed. unplug/replug or reset device to switch back to normal boot mode
+
+Unplug your adapter or device and plug it back in or connect to another power source. Your device is now ready for Initial configuration.
+
+You can see in Tasmota project other options to flash: https://github.com/arendst/Sonoff-Tasmota/wiki/Flashing
+
+#### Initial configuration
+
+WemosEM provides a wireless access point for easy Wi-Fi configuration.
+
+<img src="images/installation02.jpg" alt="installation02" align="right" width="200"/>
+<img src="images/installation03.jpg" alt="installation03" align="right" width="200"/>
+<img src="images/installation04.jpg" alt="installation04" align="right" width="200"/>
+
+Connect your device to a power source and grab your smartphone (or tablet or laptop or any other web and Wi-Fi capable device). Search for a Wi-Fi AP named **wemosEM-xxxxxx** (where x is a last part of MAC) and connect to it with password **infinito&masalla**. In this example the Wi-Fi AP is named **wemosEM-AB128A**. When it connects to the network, you may get a warning that there is no Internet connection and be prompted to connect to a different network. Do not allow the mobile device to select a different network.
+
+After you have connected to the WemosEM Wi-Fi AP, open http://192.168.4.1 in a web browser on the smartphone (or whatever device you used). Some devices might prompt you to sign in to Wi-Fi network which should also open the above address.
+
+At this page you can have WemosEM scan for available Wi-Fi networks. Select and setup you wifi network. Click save and you wemos will connect to your wifi.
+
+<img src="images/installation05.jpg" alt="installation05" align="right" width="200"/>
+Finally, connect with IP or http://wemosem-xxxxxx.local/ and enter default user and passwor:
+
+* **Default user: wemosem**
+* **Default password: infinito&masalla**
+
+Password is updatable in configuration system tab.
 
 ## Setup in Home Assistant (without MQTT autodiscovery)
     
@@ -97,6 +134,8 @@ if you have a device with Tasmota, add a automation in Home assistant:
 - Compile: pio run
 - Compile and upload Wemos D1: pio run -t upload
 
+## Tests
+
 ## Screenshots
 
 <img src="images/screenshot01.jpg" style="max-width: 100%;height: auto;" align="center" />
@@ -104,3 +143,4 @@ if you have a device with Tasmota, add a automation in Home assistant:
 <img src="images/screenshot03.jpg" style="max-width: 100%;height: auto;" align="center" />
 <img src="images/screenshot04.jpg" style="max-width: 100%;height: auto;" align="center" />
 <img src="images/screenshot05.jpg" style="max-width: 100%;height: auto;" align="center" />
+
