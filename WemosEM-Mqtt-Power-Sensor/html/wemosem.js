@@ -1,6 +1,8 @@
 
 // https://jscompress.com/
 
+var postStatus;
+
 (function ($) {
   $.each(['show', 'hide'], function (i, ev) {
     var el = $.fn[ev];
@@ -204,9 +206,8 @@ function saveSystem() {
 }
 
 function loadStatus() {
-  setInterval(function () {
 
-    var postStatus = $.post("/api/status").done(function (data) {
+  postStatus = $.post("/api/status").done(function (data) {
 
       $('.current-value').html(data.current);
       $('.voltage-value').html(data.voltage);
@@ -221,10 +222,15 @@ function loadStatus() {
 
     }).fail(function (data) {
       console.log("Error in load status of WemosEM");
+    }).always(function (data) {
+      setTimeout(function () {
+        loadStatus();
+      }, 2000);
     });
 
-  }, 2000);
 }
+
+
 
 $(document).ready(function () {
 
@@ -250,7 +256,7 @@ $(document).ready(function () {
     window.location.href = "/WebFirmwareUpgrade";
   });
 
-  var postStatus = $.post("/api/id").done(function (data) {
+  var postId = $.post("/api/id").done(function (data) {
 
     $('.wemos-id').html(data);
   });
