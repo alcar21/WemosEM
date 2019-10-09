@@ -9,9 +9,6 @@
   Compile with Arduino 2.4.2
 */
 
-#include "data/jquery3.3.1.min.js.gz.h"
-#include "data/bootstrap.min.css.gz.h"
-#include "data/wemosem.js.gz.h"
 #include "data/index.html.gz.h"
 
 void handleRoot() {
@@ -27,22 +24,6 @@ void handleRoot() {
 void handleStatus() {
   
   httpServer.send(200, "application/json", build_payload());
-}
-
-void handleJquery() {
-  httpServer.sendHeader("Content-Encoding", "gzip", true);
-	httpServer.send_P(200, "application/javascript", jquery_3_3_1_min_js_gz, jquery_3_3_1_min_js_gz_len);
-}
-
-
-void handleWemosJS() {
-  httpServer.sendHeader("Content-Encoding", "gzip", true);
-	httpServer.send_P(200, "application/javascript", wemosem_js_gz, wemosem_js_gz_len);
-}
-
-void handleBootstrap() {
-  httpServer.sendHeader("Content-Encoding", "gzip", true);
-	httpServer.send_P(200, "text/css", bootstrap_min_css_gz, bootstrap_min_css_gz_len);
 }
 
 void handleReset() {
@@ -382,9 +363,6 @@ void setup_http_server() {
   httpUpdater.setup(&httpServer, update_path, DEFAULT_SYSTEM_USER, (char *) system_password.c_str());
 
   httpServer.on("/", handleRoot);
-  httpServer.on("/jquery-3.3.1.min.js", handleJquery);
-  httpServer.on("/wemosem.js", handleWemosJS);
-  httpServer.on("/bootstrap.min.css", handleBootstrap);
 
   httpServer.on("/api/status", handleStatus);
   
