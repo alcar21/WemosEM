@@ -162,7 +162,7 @@ OTA updates from platformio windows with espota:
 ~/.platformio/packages/tool-espotapy/espota.py --progress --ip 192.168.4.1 --auth "infinito&masalla" --file wemosEM-1.3.1_core-2.4.bin
 
 ## Developers
-- This project is developed with **platformio**.
+This project is developed with **platformio**. WemosEM not compile with core 2.3 because blynk library require core 2.4.0 or higher.
 - Recomended compile this project with Arduino Core 2.4.2.
 
 **Commands:**
@@ -170,7 +170,6 @@ OTA updates from platformio windows with espota:
 - Compile and upload Wemos D1: pio run -t upload
 
 Other options:
-- Compile with core 2.3: pio run -t upload -e d1_mini_2_3
 - Compile with core 2.5: pio run -t upload -e d1_mini_2_5
 - Compile for Wemos D1 Mini PRO (**only core 2.4**): pio run -t upload -e d1_mini_pro_2_4
 
