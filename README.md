@@ -6,7 +6,7 @@ This is a fork of [@nephiel](https://github.com/Nephiel/MQTT-Power-Sensor) and [
 
 Thanks to Dawies [www.domology.es](https://domology.es/medidor-de-consumo-no-invasivo-con-sct013-wemos-d1/) for his contributions and his tutorial
 
-The sensor uses a Wemos D1 Mini and a Non-invasive Split Core Current Transformer type 100A SCT-013-000, available on eBay.
+The sensor uses a Wemos D1 Mini and PRO and a Non-invasive Split Core Current Transformer type 100A SCT-013-000, available on eBay.
 You can use Current Transformer type calibrated SCT-013-030 (30A), SCT-013-050 (50A) and others. Recomended Clamp 30A or higger.
 
 The sensor samples the current value every 10 seconds and publishes it to a topic via an MQTT broker. you can change this value up to 5 seconds
@@ -22,9 +22,14 @@ Original Gerber files for the PCB layout and the source files for Kicad are incl
 - All setup in web browser: Wifi, MQTT, Calibrate, timezone, update and system.
 - Update Voltaje by MQTT topic.
 - NTP to setup timezone.
+- Blynk Integration
+- ThingSpeak integration
+- OTA updates
+- Optional reset Kwh counter one day of the month
+- Reset Kwh in MQTT Topic
 
 #### Components: 
-- Wemos D1 Mini
+- Wemos D1 Mini / D1 Mini Pro
 - [ESP8266 Mains Current Sensor](https://www.ebay.es/itm/ESP8266-Mains-Current-Sensor-Wemos-Current-transformer-SCT013-100A-50mA/133077015640)
 - Current transformer SCT013 (Ebay or Aliexpress)
 - Optional case: https://www.thingiverse.com/thing:3544702
@@ -123,16 +128,51 @@ if you have a device with Tasmota, add a automation in Home assistant:
         action:
         - service: mqtt.publish
           data_template:
-            topic: "wemos-cmd/wemosEM-XXXXXX/voltaje"
+            topic: "wemos-cmd/wemosEM-XXXXXX/voltage"
             payload: "{{ trigger.payload_json['ENERGY'].Voltage }}"
 
+## Blynk Integration
+
+Go to Blynk app on your phone and layout the blynk project with virtual pin number according:
+- Virtual PIN V0: Voltage (V)
+- Virtual PIN V1: Current (A)
+- Virtual PIN V2: Live Watios (w)
+- Virtual PIN V3: Energy (kwh)
+- Virtual PIN V4: Energy before last reset (kwh)
+
+Setup in web interface token auth, optional you can setup server and port server.
+
+## Thingspeak Integration
+Setup in web interface token auth (Write API Key) and Channel number. 
+- Field 1: Voltage (V)
+- Field 2: Current (A)
+- Field 3: Live Watios (w)
+- Field 4: Energy (kwh)
+- Field 5: Energy before last reset (kwh)
+
+## MQTT Topics
+Topic  | Description
+------------- | -------------
+wemos-cmd/wemosEM-XXXXXX/voltage | Set/update voltage (from sonoff, shelly or other devices)
+wemos-cmd/wemosEM-XXXXXX/status | Get Status of wemosEM
+wemos-cmd/wemosEM-XXXXXX/resetkwh | reset kwh and store and beforeResetkwh variable
+
+## OTA Updates
+OTA updates from platformio windows with espota:
+~/.platformio/packages/tool-espotapy/espota.py --progress --ip 192.168.4.1 --auth "infinito&masalla" --file wemosEM-1.3.1_core-2.4.bin
+
 ## Developers
-- This project is developed with platformio.
-- Compile this project with Arduino Core 2.4.2.
+- This project is developed with **platformio**.
+- Recomended compile this project with Arduino Core 2.4.2.
 
 **Commands:**
 - Compile: pio run
 - Compile and upload Wemos D1: pio run -t upload
+
+Other options:
+- Compile with core 2.3: pio run -t upload -e d1_mini_2_3
+- Compile with core 2.5: pio run -t upload -e d1_mini_2_5
+- Compile for Wemos D1 Mini PRO (**only core 2.4**): pio run -t upload -e d1_mini_pro_2_4
 
 ## Tests
 
