@@ -8,6 +8,45 @@
   Compile with Arduino 2.4.2
 */
 
+// Function defined in power_meter_support.h
+void resetKwh();
+
+void setupOTA() {
+  // Hostname defaults to esp8266-[ChipID]
+  ArduinoOTA.setHostname(wifi_hostname.c_str());
+
+  // No authentication by default
+  // ArduinoOTA.setPassword((const char *)"123");
+
+  ArduinoOTA.onStart([]() {
+    Serial.println("[OTA] Start");
+  });
+
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\n[OTA] End");
+  });
+
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("[OTA] Progress: %u%%\r", (progress / (total / 100)));
+  });
+
+  ArduinoOTA.onError([](ota_error_t error) {
+
+    Serial.printf("[OTA] Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+  });
+
+  ArduinoOTA.begin();
+    Serial.println("[OTA] Arduino OTA Started");
+}
+
+boolean isSTA() {
+  return (WiFi.isConnected() && WiFi.localIP() != IPAddress(192,168,4,1));
+}
 
 String WifiGetRssiAsQuality(int rssi)
 {
@@ -34,7 +73,7 @@ void callbackMqtt(char* topic, byte* payload, unsigned int length) {
   
   char topicWemosEM[25];
 
-  Serial.print("Message arrived [");
+  Serial.print(" [MQTT] - Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
   for (int i = 0; i < length; i++) {
@@ -52,16 +91,19 @@ void callbackMqtt(char* topic, byte* payload, unsigned int length) {
   String s_payload = String((char *)payload);
   
   if(command.equals(TOPIC_VOLTAGE)) {
-    Serial.println("Setting MQTT voltage " + s_payload);
     
+    Serial.println(" [MQTT] - Setting MQTT voltage " + s_payload);
     if (s_payload.length() > 0 && s_payload.toFloat() > 0) {
       mainsVoltage = s_payload.toFloat();
     }
-  }
-
-  if(command.equals(TOPIC_STATUS)) {
-    Serial.println("Processing MQTT status ");
+  } else if (command.equals(TOPIC_STATUS)) {
+    
+    Serial.println(" [MQTT] - Processing MQTT status ");
     mqtt_client.publish(mqtt_topic_status.c_str(), (char*) "online");
+  } else if (command.equals(TOPIC_RESET_KWH)) {
+
+    Serial.println(" [MQTT] - Processing MQTT reset KWH ");
+    resetKwh();
   }
 
 }
@@ -70,7 +112,7 @@ void callbackMqtt(char* topic, byte* payload, unsigned int length) {
 // The payload and headers cannot exceed 128 bytes!
 String build_payload() {
 
-  StaticJsonDocument<256> json;
+  StaticJsonDocument<512> json;
   String jsonString;
 
   // WiFi signal strength in dB
@@ -80,6 +122,7 @@ String build_payload() {
   json["voltage"] = String(mainsVoltage);
   json["watios"] = String(rmsPower);
   json["kwh"] = String(kiloWattHours);
+  json["beforeKwh"] = String(beforeResetKiloWattHours);
   json["ical"] = String(Ical);
   json["mqttreconnected"] = String(reconnected_count);
   json["wifidb"] = rssi;
@@ -107,10 +150,15 @@ void prepareHostMacAndEvents() {
     Serial.print("Station connected, IP: ");
     Serial.println(WiFi.localIP());
     wifiFirstConnected = true;
+
+    wifi_name = WiFi.SSID();
+    wifi_password =  WiFi.psk();
+    ip = WiFi.localIP().toString();
+    mask =WiFi.subnetMask().toString();
+    gateway = WiFi.gatewayIP().toString();
   });
 
-  disconnectedEventHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& event)
-  {
+  disconnectedEventHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& event) {
     Serial.println("Station disconnected");
     wifiFirstConnected = false;
   });
@@ -132,6 +180,8 @@ void prepareHostMacAndEvents() {
   } // End of for
   wifi_hostname = String(HOSTNAME_PREFIX);
   wifi_hostname.concat(My_MAC.substring(6, 12));
+
+  WiFi.hostname(wifi_hostname.c_str());
 }
 
 // Try to connect to any of the WiFi networks configured in Custom_Settings.h
@@ -141,11 +191,19 @@ void setupWifi() {
   WiFi.hostname(wifi_hostname.c_str());
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
 
-  wifiManager.setConfigPortalTimeout(180);
-  Serial.println(" Wifi " + wifi_hostname + ", password " + system_password);
-  wifiManager.autoConnect(wifi_hostname.c_str(), (char *) system_password.c_str());
+  if (wifi_name.length() > 0 && wifi_password.length() > 0 ) {
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(wifi_name.c_str(), wifi_password.c_str());
+    delay(300);
+  }
 
-  if (ipMode == 1) {
+  wifiManager.setConfigPortalTimeout(180);
+  wifiManager.setConnectTimeout(60);
+  Serial.println(" Wifi " + wifi_hostname + ", password " + system_password);
+  wifiManager.autoConnect(wifi_hostname.c_str(), system_password.c_str());
+  
+
+  if (isSTA() && ipMode == 1) {
     IPAddress ipa_ip, ipa_gateway, ipa_subnet;
     if (ipa_ip.fromString(ip) && ipa_gateway.fromString(gateway) &&  ipa_subnet.fromString(mask)) {
       // Static IP Setup
@@ -180,6 +238,11 @@ void discoverHA() {
   sprintf_P(topic, TOPIC_HA_KWH, wifi_hostname.c_str() );
   sprintf_P(message, MESSAGE_HA_KWH, wifi_hostname.c_str(), wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str() );
   mqtt_client.publish(topic, message, true);
+
+  // Power (kwTotal)
+  // sprintf_P(topic, TOPIC_HA_KWTOTAL, wifi_hostname.c_str() );
+  // sprintf_P(message, MESSAGE_HA_KWTOTAL, wifi_hostname.c_str(), wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str() );
+  // mqtt_client.publish(topic, message, true);
 
 }
 

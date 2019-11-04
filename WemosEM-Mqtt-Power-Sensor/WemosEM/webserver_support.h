@@ -40,16 +40,45 @@ void handleReboot() {
   restartESP = true;
 }
 
-void handleMQTT() {
+void handleConfig() {
 
-  StaticJsonDocument<256> json;
+  DynamicJsonDocument json(1024);
   String jsonString;
 
+  // WIFI
+  json["wifi_ssid"] = WiFi.SSID();
+  json["wifi_password"] = WiFi.psk();
+	json["wifi_mode"] = ipMode;
+  json["wifi_ip"] = WiFi.localIP().toString();
+  json["wifi_mask"] = WiFi.subnetMask().toString();
+  json["wifi_gateway"] = WiFi.gatewayIP().toString();
+
+  // MQTT
   json["mqtt_enabled"] = mqtt_enabled;
   json["mqtt_server"] = mqtt_server.c_str();
 	json["mqtt_port"] = mqtt_port;
   json["mqtt_username"] = mqtt_username.c_str();
   json["mqtt_password"] = mqtt_password.c_str();
+
+  // CALIBRATE
+  json["votalje"] = mainsVoltage;
+  json["ical"] = Ical;
+  json["messageinterval"] = message_interval;
+
+  // IOT PLATFORMS
+  json["blynk_enabled"] = blynk_enabled;
+  json["blynkAuth"] = blynkAuth;
+  json["blynkHost"] = blynkServer;
+  json["blynkPort"] = blynkPort;
+
+  json["ts_enabled"] = thingSpeak_enabled;
+  json["tsChannelNumber"] = tsChannelNumber;
+  json["tsWriteAPIKey"] = tsWriteAPIKey;
+
+  // SYSTEM - TIMEZONE
+  json["resetDay"] = dayReset;
+  json["timezone"] = timeZone;
+  json["minutestimezone"] = minutesTimeZone;
 	
   serializeJson(json, jsonString);
   httpServer.send(200, "application/json", jsonString);
@@ -116,19 +145,91 @@ void handleSaveMQTT() {
   saveConfig();
 }
 
-void handleWIFI() {
-  StaticJsonDocument<256> json;
-  String jsonString;
+void handleSaveIotPlatforms() {
 
-  json["wifi_ssid"] = WiFi.SSID();
-  json["wifi_password"] = WiFi.psk();
-	json["wifi_mode"] = ipMode;
-  json["wifi_ip"] = WiFi.localIP().toString();
-  json["wifi_mask"] = WiFi.subnetMask().toString();
-  json["wifi_gateway"] = WiFi.gatewayIP().toString();
+    StaticJsonDocument<256> json;
+  String jsonString, _blynk_enabled, _blynkServer, _blynkPort, _blynkAuth, _thingSpeak_enabled, _tsChannelNumber, _tsWriteAPIKey;
+
+	_blynk_enabled = httpServer.arg("blynk_enabled");
+  _blynkAuth = httpServer.arg("blynkAuth");
+  _blynkServer = httpServer.arg("blynkHost");
+  _blynkPort = httpServer.arg("blynkPort");
+	_thingSpeak_enabled = httpServer.arg("thingSpeak_enabled");
+	_tsChannelNumber = httpServer.arg("tsChannelNumber");
+	_tsWriteAPIKey = httpServer.arg("tsWriteAPIKey");
+
+  Serial.println("BLYNK Enabled: " + _blynk_enabled);
+  Serial.println("BLYNK Host: " + _blynkServer);
+  Serial.println("BLYNK Port: " + _blynkPort);
+  Serial.println("BLYNK Auth token: " + _blynkAuth);
+  Serial.println("THINGSPEAK Enabled: " + _thingSpeak_enabled);
+  Serial.println("THINGSPEAK Channel: " + _tsChannelNumber);
+  Serial.println("THINGSPEAK ApiKey: " + _tsWriteAPIKey);
 	
+	if(_blynk_enabled.length() > 0) {
+    if (_blynk_enabled.toInt() == 1) {
+      blynk_enabled = true;
+    } else {
+      blynk_enabled = false;
+    }
+  } else {
+    json["blynk_enabled"] = "Error: blynk enable parameter incorrect";
+  }
+
+  if (blynk_enabled) {
+    if(_blynkServer.length() > 0) {
+      blynkServer = _blynkServer;
+    } else {
+      json["blynkHost"] = "Error: blynk host parameter incorrect";
+    }
+  }
+
+  if (blynk_enabled) {
+    if(_blynkPort.length() > 0 && _blynkPort.toInt() > 0) {
+      blynkPort = _blynkPort.toInt();
+    } else {
+      json["blynkPort"] = "Error: blynk port parameter incorrect";
+    }
+  }
+
+  if (blynk_enabled) {
+    if(_blynkAuth.length() > 0) {
+      blynkAuth = _blynkAuth;
+    } else {
+      json["blynkAuth"] = "Error: blynk auth token parameter incorrect";
+    }
+  }
+
+  if(_thingSpeak_enabled.length() > 0) {
+    if (_thingSpeak_enabled.toInt() == 1) {
+      thingSpeak_enabled = true;
+    } else {
+      thingSpeak_enabled = false;
+    }
+  } else {
+    json["thingSpeak_enabled"] = "Error: thingspeak enable parameter incorrect";
+  }
+
+  if (thingSpeak_enabled) {
+    if(_tsChannelNumber.length() > 0 && _tsChannelNumber.toInt() > 0) {
+      tsChannelNumber = _tsChannelNumber.toInt();
+    } else {
+      json["tsChannelNumber"] = "Error: thingspeak channel number parameter incorrect";
+    }
+  }
+
+  if (thingSpeak_enabled) {
+    if(_tsWriteAPIKey.length() > 0) {
+      tsWriteAPIKey = _tsWriteAPIKey;
+    } else {
+      json["tsWriteAPIKey"] = "Error: thingspeak ApiKey parameter incorrect";
+    }
+  }
+
   serializeJson(json, jsonString);
   httpServer.send(200, "application/json", jsonString);
+
+  saveConfig();
 }
 
 void handleSaveWifi() {
@@ -197,18 +298,6 @@ void handleSaveWifi() {
 
 }
 
-void handleCalibrate() {
-  StaticJsonDocument<256> json;
-  String jsonString;
-
-  json["votalje"] = mainsVoltage;
-  json["ical"] = Ical;
-  json["messageinterval"] = message_interval;
-	
-  serializeJson(json, jsonString);
-  httpServer.send(200, "application/json", jsonString);
-}
-
 void handleSaveCalibrate() {
 
   StaticJsonDocument<256> json;
@@ -260,40 +349,43 @@ void handleSaveCalibrate() {
   saveConfig();
 }
 
-void handleTime() {
-  StaticJsonDocument<256> json;
-  String jsonString;
-
-  json["timezone"] = timeZone;
-  json["minutestimezone"] = minutesTimeZone;
-	
-  serializeJson(json, jsonString);
-  httpServer.send(200, "application/json", jsonString);
-}
-
-
-void handleSaveTime() {
+void handleSaveSystem() {
 
   StaticJsonDocument<256> json;
-  String jsonString, _timezone, _minutestimezone;
+  String jsonString, _dayReset, _systempassword, _timezone, _minutestimezone;
 
+  _dayReset = httpServer.arg("resetDay");
+	_systempassword = httpServer.arg("systempassword");
   _timezone = httpServer.arg("timezone");
   _minutestimezone = httpServer.arg("minutestimezone");
 
+
+  Serial.print(" [WEB] - Password: " + _systempassword);
   Serial.print("WEB timezone SIZE: ");
   Serial.print( _timezone.length());
   Serial.print(" timezone value: ");
-  Serial.println( _timezone.toInt());
+  Serial.print( _timezone.toInt());
+  Serial.print(" Reset Day: ");
+  Serial.println( _dayReset.toInt());
+
+  if(_dayReset.length() > 0 && _dayReset.length() <= 2 && _dayReset.toInt() >= 0) {
+    dayReset = _dayReset.toInt();
+  } else {
+    json["dayReset"] = "Error: Reset day value incorrect (0-27) February restriction";
+  }
+
+  if(_systempassword.length() <= MAXLEN_SYSTEM_PASSWORD) {
+    system_password = _systempassword;
+  } else {
+    json["password"] = "Error: password system is incorrect > 30 characters";
+  }
+
   if(_timezone.length() > 0 && _timezone.length() <= MAXLEN_TIMEZONE && _timezone.toInt() >= 0) {
     timeZone = _timezone.toInt();
   } else {
     json["timezone"] = "Error: timezone value incorrect (-14-+14)";
   }
 
-  Serial.print("WEB minutestimezone SIZE: ");
-  Serial.print( _minutestimezone.length());
-  Serial.print(" minutestimezone value: ");
-  Serial.println( _minutestimezone.toInt());
  if(_minutestimezone.length() > 0 && _minutestimezone.length() <= MAXLEN_TIMEZONE && _minutestimezone.toInt() >= 0) {
     minutesTimeZone = _minutestimezone.toInt();
   } else {
@@ -301,28 +393,7 @@ void handleSaveTime() {
   }
 
   // Reconfigure NTP client
-  wifiFirstConnected = true;
-
-  serializeJson(json, jsonString);
-  httpServer.send(200, "application/json", jsonString);
-
-  saveConfig();
-}
-
-void handleSaveSystem() {
-
-  StaticJsonDocument<256> json;
-  String jsonString, _systempassword;
-
-	_systempassword = httpServer.arg("systempassword");
-
-  Serial.println("Password: " + _systempassword);
-
-  if(_systempassword.length() <= MAXLEN_SYSTEM_PASSWORD) {
-    system_password = _systempassword;
-  } else {
-    json["password"] = "Error: password system is incorrect > 30 characters";
-  }
+  wifiFirstConnected = true;	
 
   serializeJson(json, jsonString);
   httpServer.send(200, "application/json", jsonString);
@@ -366,15 +437,12 @@ void setup_http_server() {
 
   httpServer.on("/api/status", handleStatus);
   
-  httpServer.on("/api/loadwifi", handleWIFI);
-  httpServer.on("/api/loadmqtt", handleMQTT);
-  httpServer.on("/api/loadcalibrate", handleCalibrate);
-  httpServer.on("/api/loadtime", handleTime);
+  httpServer.on("/api/loadConfig", handleConfig);
 
   httpServer.on("/api/savewifi", handleSaveWifi);
   httpServer.on("/api/savemqtt", handleSaveMQTT);
   httpServer.on("/api/savecalibrate", handleSaveCalibrate);
-  httpServer.on("/api/savetime", handleSaveTime);
+  httpServer.on("/api/saveIotPlatforms", handleSaveIotPlatforms);
   httpServer.on("/api/savesystem", handleSaveSystem);
   
 

@@ -19,12 +19,16 @@
 #include <ESP8266HTTPUpdateServer.h>
 #include <FS.h>
 #include <ArduinoJson.h>
+#include <BlynkSimpleEsp8266.h>
+#include <ThingSpeak.h>
+#include <ArduinoOTA.h>
 
 #include "WiFiClientPrint.h"
 #include "variables.h"
 #include "settings.h"
 #include "ntp_support.h"
 #include "mqtt_wifi_serial_support.h"
+#include "iot_platforms_support.h"
 #include "power_meter_support.h"
 #include "webserver_support.h"
 
@@ -54,6 +58,12 @@ void setup(void) {
 
   setup_http_server();
 
+  setup_blynk();
+
+  setup_thingspeak();
+
+  setupOTA();
+
   Serial.println("Setup finished");
 } // End of setup
 
@@ -61,11 +71,11 @@ void setup(void) {
 // main loop
 void loop() {
 
+  ArduinoOTA.handle();
+
   ntp_loop();
 
   em_loop();
-
-  //print_ntp_time();
 
   mqtt_client.loop();
   httpServer.handleClient(); //handles requests for the firmware update page
@@ -84,6 +94,5 @@ void loop() {
     ESP.restart();
     delay(100);
   }
-  
 
 } // End of main loop

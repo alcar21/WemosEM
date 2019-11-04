@@ -9,6 +9,8 @@
   Compile with Arduino 2.4.2
 */
 
+#define DEFAULT_EMPTY ""
+
 // WIFI
 #define DEFAULT_WIFI_NAME ""
 #define DEFAULT_WIFI_PASSWORD ""
@@ -57,9 +59,24 @@ int message_interval = DEFAULT_MESSAGE_INTERVAL;     // Time in ms between each 
 float mainsVoltage = DEFAULT_VOLTAGE;          // Mains voltage in Volts. Change this value according to your mains.
 float Ical = DEFAULT_ICAL;             // Varia dentro del mismo fabricante, hay que calibrarlo (1800 vueltas del secundario STC013 / 69 Ohm resistencia carga (burden)) = 26.1
 
+// Iot Platforms
+// Blynk platform
+boolean blynk_enabled = false;
+String blynkAuth = DEFAULT_EMPTY;
+String blynkServer = DEFAULT_EMPTY;
+uint16_t blynkPort = 0;
+
+// ThingSpeak platform
+boolean thingSpeak_enabled = false;
+unsigned long tsChannelNumber = 0;
+String tsWriteAPIKey = DEFAULT_EMPTY;
+
 // TimeZone
 int8_t timeZone = DEFAULT_TIMEZONE;
 int8_t minutesTimeZone = DEFAULT_MINUTES_TIMEZONE;
+
+// Date RESET
+int dayReset = 0;
 
 boolean loadConfig() {
 
@@ -77,10 +94,10 @@ boolean loadConfig() {
   }
 
   size_t size = configFile.size();
-  if (size > 512) {
-    Serial.println("ERROR: Config file size is too large");
-    return false;
-  }
+  // if (size > 1024) {
+  //   Serial.println("ERROR: Config file size is too large");
+  //   return false;
+  // }
 
   // Allocate a buffer to store contents of the file.
   std::unique_ptr<char[]> buf(new char[size]);
@@ -90,7 +107,7 @@ boolean loadConfig() {
   // use configFile.readString instead.
   configFile.readBytes(buf.get(), size);
 
-  DynamicJsonDocument jsonConfig(512);
+  DynamicJsonDocument jsonConfig(1024);
   auto error = deserializeJson(jsonConfig, buf.get());
   if (error) {
     Serial.println("Failed to parse config file");
@@ -117,18 +134,34 @@ boolean loadConfig() {
   message_interval = (jsonConfig["message_interval"] == "" ? DEFAULT_MESSAGE_INTERVAL : jsonConfig["message_interval"]);
   mainsVoltage = (jsonConfig["voltage"] == "" ? DEFAULT_VOLTAGE : jsonConfig["voltage"]);
   Ical = (jsonConfig["ical"] == "" ? DEFAULT_ICAL : jsonConfig["ical"]);
-  // TIMEZONE
+  // IOT PLATFORMS
+  blynk_enabled = (jsonConfig["blynk_enabled"] == 1 ? true : false);
+  blynkAuth = (jsonConfig["blynkAuth"] == "" || jsonConfig["blynkAuth"] == "null" ? DEFAULT_EMPTY : jsonConfig["blynkAuth"].as<String>());
+  blynkServer = (jsonConfig["blynkServer"] == "" || jsonConfig["blynkServer"] == "null" ? DEFAULT_EMPTY : jsonConfig["blynkServer"].as<String>());
+  blynkPort = (jsonConfig["blynkPort"] == "" ? DEFAULT_MQTT_PORT : jsonConfig["blynkPort"]);
+  
+  thingSpeak_enabled = (jsonConfig["ts_enabled"] == 1 ? true : false);
+  tsChannelNumber = (jsonConfig["tsChannelNumber"] == "" ? 0 : jsonConfig["tsChannelNumber"]);
+  tsWriteAPIKey = (jsonConfig["tsWriteAPIKey"] == "" || jsonConfig["tsWriteAPIKey"] == "null" ? DEFAULT_EMPTY : jsonConfig["tsWriteAPIKey"].as<String>());
+
+  // SYSTEM - TIMEZONE
   timeZone = (jsonConfig["timezone"] == "" ? DEFAULT_TIMEZONE : jsonConfig["timezone"]);
   minutesTimeZone = (jsonConfig["minutes_timezone"] == "" ? DEFAULT_MINUTES_TIMEZONE : jsonConfig["minutes_timezone"]);
   // SYSTEM
   system_password = (jsonConfig["system_password"] == "" ? DEFAULT_SYSTEM_PASSWORD : jsonConfig["system_password"].as<String>());
+  dayReset = (jsonConfig["dayReset"] == "" ? 0 : jsonConfig["dayReset"]);
+
+  // KWH
+  watiosTotal = (jsonConfig["watiosTotal"] == "" ? 0.0 : jsonConfig["watiosTotal"]);
+  kiloWattHours = (jsonConfig["kiloWattHours"] == "" ? 0.0 : jsonConfig["kiloWattHours"]);
+  beforeResetKiloWattHours = (jsonConfig["beforeResetKiloWattHours"] == "" ? 0.0 : jsonConfig["beforeResetKiloWattHours"]);
 
   return true;
 
 } 
 
 bool saveConfig() {
-  DynamicJsonDocument jsonConfig(512);
+  DynamicJsonDocument jsonConfig(1024);
   String jsonString;
 
     // WIFI
@@ -148,11 +181,29 @@ bool saveConfig() {
   jsonConfig["message_interval"] = message_interval;
   jsonConfig["voltage"] = mainsVoltage;
   jsonConfig["ical"] = Ical; 
-  // TIMEZONE
+
+  // IOT PLATFORMS
+  jsonConfig["blynk_enabled"] = blynk_enabled;
+  jsonConfig["blynkAuth"] = blynkAuth;
+  jsonConfig["blynkServer"] = blynkServer;
+  jsonConfig["blynkPort"] = blynkPort;
+  
+  jsonConfig["ts_enabled"] = thingSpeak_enabled;
+  jsonConfig["tsChannelNumber"] = tsChannelNumber;
+  jsonConfig["tsWriteAPIKey"] = tsWriteAPIKey;
+
+  // SYSTEM - TIMEZONE
   jsonConfig["timezone"] = timeZone;
   jsonConfig["minutes_timezone"] = minutesTimeZone;
   // SYSTEM
   jsonConfig["system_password"] = system_password;
+  jsonConfig["dayReset"] = dayReset;
+
+
+  // KWH
+  jsonConfig["watiosTotal"] = watiosTotal;
+  jsonConfig["kiloWattHours"] = kiloWattHours;
+  jsonConfig["beforeResetKiloWattHours"] = beforeResetKiloWattHours;
   
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {

@@ -40,9 +40,10 @@ function prepareWifiMode() {
   }
 }
 
-function loadWIFI() {
-  var postWifi = $.post("/api/loadwifi").done(function (data) {
+function loadConfig() {
+  var postWifi = $.post("/api/loadConfig").done(function (data) {
 
+    // WIFI
     $('#wifi-name').val(data.wifi_ssid);
     $('#wifi-pass').val(data.wifi_password);
     $('#wifi-ipmode').val(data.wifi_mode);
@@ -50,54 +51,36 @@ function loadWIFI() {
     $('#wifi-mask').val(data.wifi_mask);
     $('#wifi-gateway').val(data.wifi_gateway);
 
-  }).fail(function (data) {
-    showError("Error in load WIFI parameteres of WemosEM");
-  });
-}
-
-function loadCalibration() {
-
-  var postWifi = $.post("/api/loadcalibrate").done(function (data) {
-
-    $('#voltage').val(data.votalje);
-    $('#ical').val(data.ical);
-    $('#messageinterval').val(data.messageinterval);
-
-  }).fail(function (data) {
-    showError("Error in load Calibrate parameteres of WemosEM");
-  });
-
-}
-
-function loadtime() {
-  var postWifi = $.post("/api/loadtime").done(function (data) {
-
-    $('#timezone').val(data.timezone);
-    $('#minute-timezone').val(data.minutestimezone);
-
-  }).fail(function (data) {
-    showError("Error in load Calibrate parameteres of WemosEM");
-  });
-}
-
-function loadSystem() {
-
-}
-
-function loadMQTT() {
-
-  var postMQTT = $.post("/api/loadmqtt").done(function (data) {
-
+    // MQTT
     $('#enableMQTT').prop('checked', data.mqtt_enabled);
     $('#mqtt-ip').val(data.mqtt_server);
     $('#mqtt-port').val(data.mqtt_port);
     $('#mqtt-user').val(data.mqtt_username);
     $('#mqtt-pass').val(data.mqtt_password);
 
-  }).fail(function (data) {
-    showError("Error in load MQTT parameteres of WemosEM");
-  });
+    // CALIBRATE
+    $('#voltage').val(data.votalje);
+    $('#ical').val(data.ical);
+    $('#messageinterval').val(data.messageinterval);
 
+    // IOT PLATFORMS
+    $('#enableBlynk').prop('checked', data.blynk_enabled);
+    $('#blynk-host').val(data.blynkHost);
+    $('#blynk-port').val(data.blynkPort);
+    $('#blynk-auth').val(data.blynkAuth);
+
+    $('#enableThingspeak').prop('checked', data.ts_enabled);
+    $('#tsChannelNumber').val(data.tsChannelNumber);
+    $('#tsWriteAPIKey').val(data.tsWriteAPIKey);
+
+    // SYSTEM - TIMEZONE
+    $('#reset-day').val(data.resetDay);
+    $('#timezone').val(data.timezone);
+    $('#minute-timezone').val(data.minutestimezone);
+
+  }).fail(function (data) {
+    showError("Error load configuration of WemosEM");
+  });
 }
 
 function saveWifi() {
@@ -112,7 +95,6 @@ function saveWifi() {
       'wifi-gateway': $('#wifi-gateway').val()
     }).done(function (data) {
 
-      loadMQTT();
       if (!data || data.length == 0) {
         showInfo("Wifi parameters saved");
         if ($('#wifi-ipmode').val() == 1) {
@@ -138,7 +120,6 @@ function saveMQTT() {
       mqtt_password: $('#mqtt-pass').val()
     }).done(function (data) {
 
-      loadMQTT();
       if (!data || data.length == 0) {
         showInfo("MQTT parameters saved");
       } else {
@@ -150,6 +131,30 @@ function saveMQTT() {
     });
 }
 
+function saveIOTPlatforms() {
+
+  var postMQTT = $.post("/api/saveIotPlatforms",
+    {
+      blynk_enabled: ($('#enableBlynk').prop('checked') ? "1" : "0"),
+      blynkHost: $('#blynk-host').val(),
+      blynkPort: $('#blynk-port').val(),
+      blynkAuth: $('#blynk-auth').val(),
+      thingSpeak_enabled: ($('#enableThingspeak').prop('checked') ? "1" : "0"),
+      tsChannelNumber: $('#tsChannelNumber').val(),
+      tsWriteAPIKey: $('#tsWriteAPIKey').val()
+    }).done(function (data) {
+
+      if (!data || data.length == 0) {
+        showInfo("IOT Platforms parameters saved");
+      } else {
+        showError("Error in IOT Platforms saved parameters: " + JSON.stringify(data));
+      }
+
+    }).fail(function (data) {
+      showError("Error in save IOT Platforms parameteres of WemosEM");
+    });
+}
+
 function saveCalibrate() {
   var postCalibrate = $.post("/api/savecalibrate",
     {
@@ -158,7 +163,6 @@ function saveCalibrate() {
       messageinterval: $('#messageinterval').val()
     }).done(function (data) {
 
-      loadCalibration();
       if (!data || data.length == 0) {
         showInfo("Calibrate settings saved");
       } else {
@@ -170,30 +174,13 @@ function saveCalibrate() {
     });
 }
 
-function saveTime() {
-  var postTime = $.post("/api/savetime",
-    {
-      timezone: $('#timezone').val(),
-      minutestimezone: $('#minute-timezone').val()
-    }).done(function (data) {
-
-      loadCalibration();
-      if (!data || data.length == 0) {
-        showInfo("Timezone settings saved");
-      } else {
-        showError("Error saving time settings: " + JSON.stringify(data));
-      }
-
-    }).fail(function (data) {
-      showError("Error saving time settings of WemosEM");
-    });
-}
-
 function saveSystem() {
   var postSystem = $.post("/api/savesystem",
-    { systempassword: $('#systemPassword').val() }).done(function (data) {
+    { systempassword: $('#systemPassword').val(),
+      resetDay: $('#reset-day').val(),  
+      timezone: $('#timezone').val(),
+      minutestimezone: $('#minute-timezone').val() }).done(function (data) {
 
-      loadSystem();
       if (!data || data.length == 0) {
         showInfo("System settings saved");
       } else {
@@ -262,11 +249,8 @@ $(document).ready(function () {
   });
 
   loadStatus();
-  loadWIFI();
-  loadMQTT();
-  loadCalibration();
-  loadtime();
-  loadSystem();
+  
+  loadConfig();
 
   $('.btn-reboot').click(function () {
     var postReboot = $.post("/reboot").done(function () {
@@ -284,6 +268,10 @@ $(document).ready(function () {
     });
   });
 
+  $(".card-header button.close").click(function() {
+    $(".card-option").hide();
+  });
+
   $(".btn-save-wifi").click(function () {
     saveWifi();
   });
@@ -296,8 +284,8 @@ $(document).ready(function () {
     saveCalibrate();
   });
 
-  $(".btn-save-time").click(function () {
-    saveTime();
+  $(".btn-save-iot").click(function () {
+    saveIOTPlatforms();
   });
 
   $(".btn-save-system").click(function () {
@@ -313,27 +301,27 @@ $(document).ready(function () {
   });
 
   $(".btn-wifi").click(function () {
-    $(".card").hide();
+    $(".card-option").hide();
     $(".cardWifi").show();
   });
 
   $(".btn-mqtt").click(function () {
-    $(".card").hide();
+    $(".card-option").hide();
     $(".cardMQTT").show();
   });
 
   $(".btn-calibrate").click(function () {
-    $(".card").hide();
+    $(".card-option").hide();
     $(".cardCalibrate").show();
   });
 
-  $(".btn-time").click(function () {
-    $(".card").hide();
-    $(".cardTime").show();
+  $(".btn-iot").click(function () {
+    $(".card-option").hide();
+    $(".cardIOT").show();
   });
 
   $(".btn-system").click(function () {
-    $(".card").hide();
+    $(".card-option").hide();
     $(".cardSystem").show();
   });
 
