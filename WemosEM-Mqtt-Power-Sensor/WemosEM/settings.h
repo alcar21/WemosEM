@@ -1,7 +1,7 @@
 
 /*
   Default parameters, settings load and save functions
- 
+
   Alfonso C. Alvarez (Alcar), 14nd September 2019
 
   @author <a href="mailto:alcar21@gmail.com">Alfonso Carlos Alvarez Reyes</a>
@@ -31,7 +31,7 @@
 #define DEFAULT_TIMEZONE 1
 #define DEFAULT_MINUTES_TIMEZONE 0
 // SYSTEM
-#define DEFAULT_SYSTEM_USER "wemosem" 
+#define DEFAULT_SYSTEM_USER "wemosem"
 #define DEFAULT_SYSTEM_PASSWORD "infinito&masalla"
 
 // VARIABLES
@@ -125,7 +125,7 @@ boolean loadConfig() {
   mask = (jsonConfig["mask"] == "" ? DEFAULT_MASK : jsonConfig["mask"].as<String>());
   gateway = (jsonConfig["gateway"] == "" ? DEFAULT_GATEWAY : jsonConfig["gateway"].as<String>());
   // MQTT
-  mqtt_enabled = (jsonConfig["mqtt_enabled"] == 1 ? true : false);
+  mqtt_enabled = (jsonConfig["mqtt_enabled"]);
   mqtt_server = (jsonConfig["mqtt_server"] == "" ? DEFAULT_MQTT_SERVER : jsonConfig["mqtt_server"].as<String>());
   mqtt_port = (jsonConfig["mqtt_port"] == "" ? DEFAULT_MQTT_PORT : jsonConfig["mqtt_port"]);
   mqtt_username = (jsonConfig["mqtt_username"] == "" ? DEFAULT_MQTT_USERNAME : jsonConfig["mqtt_username"].as<String>());
@@ -139,7 +139,7 @@ boolean loadConfig() {
   blynkAuth = (jsonConfig["blynkAuth"] == "" || jsonConfig["blynkAuth"] == "null" ? DEFAULT_EMPTY : jsonConfig["blynkAuth"].as<String>());
   blynkServer = (jsonConfig["blynkServer"] == "" || jsonConfig["blynkServer"] == "null" ? DEFAULT_EMPTY : jsonConfig["blynkServer"].as<String>());
   blynkPort = (jsonConfig["blynkPort"] == "" ? DEFAULT_MQTT_PORT : jsonConfig["blynkPort"]);
-  
+
   thingSpeak_enabled = (jsonConfig["ts_enabled"] == 1 ? true : false);
   tsChannelNumber = (jsonConfig["tsChannelNumber"] == "" ? 0 : jsonConfig["tsChannelNumber"]);
   tsWriteAPIKey = (jsonConfig["tsWriteAPIKey"] == "" || jsonConfig["tsWriteAPIKey"] == "null" ? DEFAULT_EMPTY : jsonConfig["tsWriteAPIKey"].as<String>());
@@ -158,7 +158,7 @@ boolean loadConfig() {
 
   return true;
 
-} 
+}
 
 bool saveConfig() {
   DynamicJsonDocument jsonConfig(1024);
@@ -180,14 +180,14 @@ bool saveConfig() {
   // CALIBRATE
   jsonConfig["message_interval"] = message_interval;
   jsonConfig["voltage"] = mainsVoltage;
-  jsonConfig["ical"] = Ical; 
+  jsonConfig["ical"] = Ical;
 
   // IOT PLATFORMS
   jsonConfig["blynk_enabled"] = blynk_enabled;
   jsonConfig["blynkAuth"] = blynkAuth;
   jsonConfig["blynkServer"] = blynkServer;
   jsonConfig["blynkPort"] = blynkPort;
-  
+
   jsonConfig["ts_enabled"] = thingSpeak_enabled;
   jsonConfig["tsChannelNumber"] = tsChannelNumber;
   jsonConfig["tsWriteAPIKey"] = tsWriteAPIKey;
@@ -204,7 +204,7 @@ bool saveConfig() {
   jsonConfig["watiosTotal"] = watiosTotal;
   jsonConfig["kiloWattHours"] = kiloWattHours;
   jsonConfig["beforeResetKiloWattHours"] = beforeResetKiloWattHours;
-  
+
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
     Serial.println("Failed to open config file for writing");
