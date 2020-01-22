@@ -38,22 +38,22 @@ void setup(void) {
   delay(10);
 
   prepareHostMacAndEvents();
-  
+
   pinMode(Status_LED, OUTPUT);                // Initialize Status LED
   Status_LED_Off;
-  
+
   initSerial();
 
   loadConfig();
-  
+
   setupWifi();
 
   emon.current(A0, Ical);             // Current: input pin A6=D4, calibration factor
 
   initMqtt();
-  
+
   randomSeed(micros());
-  
+
   ms_since_last_message = millis();           // Reset time since sending last message
 
   setup_http_server();
@@ -63,6 +63,9 @@ void setup(void) {
   setup_thingspeak();
 
   setupOTA();
+
+  emon.current(A0, Ical);
+  em_read(true);
 
   Serial.println("Setup finished");
 } // End of setup

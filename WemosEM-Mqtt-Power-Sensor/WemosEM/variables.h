@@ -1,7 +1,7 @@
 
 /*
   Global variables and constants
- 
+
   Alfonso C. Alvarez (Alcar), 14nd September 2019
 
   @author <a href="mailto:alcar21@gmail.com">Alfonso Carlos Alvarez Reyes</a>
@@ -67,7 +67,8 @@ unsigned long uptimeAP = 0;
 const char* update_path = "/WebFirmwareUpgrade";
 
 // TIME ZONE
-const PROGMEM char ntpServer[] = "pool.ntp.org";
+//const PROGMEM char ntpServer[] = "pool.ntp.org";
+const char *ntpServer = "pool.ntp.org";
 
 // Message timing
 int reconnected_count = 0;            // Counter of messages sent
@@ -83,12 +84,12 @@ double beforeResetKiloWattHours = 0;  // Measured energy in KWh
 double rmsCurrent = 0;                // Measured current in A
 double rmsPower = 0;                  // Measured power in W
 unsigned long lastTimeMeasure = 0;    // Last time measure in ms
-boolean isResetEnergyToday = false;    // reset energy on setup day 
+boolean isResetEnergyToday = false;    // reset energy on setup day
 
 // ThingSpeak
 unsigned long lastTimeMeasureTS = 0;
 
-// NTP 
+// NTP
 boolean syncEventTriggered = false;   // True if a time even has been triggered
 NTPSyncEvent_t ntpEvent;              // Last triggered event
 

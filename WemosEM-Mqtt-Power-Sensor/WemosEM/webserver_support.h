@@ -1,7 +1,7 @@
 
 /*
   Webserver functions and webpages into data directory
- 
+
   Alfonso C. Alvarez (Alcar), 14nd September 2019
 
   @author <a href="mailto:alcar21@gmail.com">Alfonso Carlos Alvarez Reyes</a>
@@ -16,27 +16,28 @@ void handleRoot() {
   if (system_password.length() > 0 && !httpServer.authenticate(DEFAULT_SYSTEM_USER, system_password.c_str())) {
     return httpServer.requestAuthentication();
   }
-  
+
   httpServer.sendHeader("Content-Encoding", "gzip", true);
   httpServer.send_P(200, "text/html", index_html_gz, index_html_gz_len);
 }
 
 void handleStatus() {
-  
+
   httpServer.send(200, "application/json", build_payload());
 }
 
 void handleReset() {
-  
+
   Serial.println("FACTORY RESET...");
   httpServer.send(200);
   resetESP = true;
 }
 
 void handleReboot() {
-  
+
   Serial.println("Restarting...");
   httpServer.send(200);
+  saveConfig();
   restartESP = true;
 }
 
@@ -79,7 +80,7 @@ void handleConfig() {
   json["resetDay"] = dayReset;
   json["timezone"] = timeZone;
   json["minutestimezone"] = minutesTimeZone;
-	
+
   serializeJson(json, jsonString);
   httpServer.send(200, "application/json", jsonString);
 }
@@ -100,7 +101,7 @@ void handleSaveMQTT() {
   Serial.println("MQTT Port: " + _mqtt_port);
   Serial.println("MQTT Username: " + _mqtt_username);
   Serial.println("MQTT Password: " + _mqtt_password);
-	
+
 	if(_mqtt_enabled.length() > 0 && _mqtt_enabled.length() <= MAXLEN_MQTT_ENABLED) {
     if (_mqtt_enabled.toInt() == 1) {
       mqtt_enabled = true;
@@ -165,7 +166,7 @@ void handleSaveIotPlatforms() {
   Serial.println("THINGSPEAK Enabled: " + _thingSpeak_enabled);
   Serial.println("THINGSPEAK Channel: " + _tsChannelNumber);
   Serial.println("THINGSPEAK ApiKey: " + _tsWriteAPIKey);
-	
+
 	if(_blynk_enabled.length() > 0) {
     if (_blynk_enabled.toInt() == 1) {
       blynk_enabled = true;
@@ -275,7 +276,7 @@ void handleSaveWifi() {
   } else {
     json["wifi_ip"] = "Error: wifi ip parameter incorrect";
   }
-  
+
   if(_wifi_mask.length() > 0 && checkIP.fromString(_wifi_mask)) {
     mask = _wifi_mask;
   } else {
@@ -380,7 +381,7 @@ void handleSaveSystem() {
     json["password"] = "Error: password system is incorrect > 30 characters";
   }
 
-  if(_timezone.length() > 0 && _timezone.length() <= MAXLEN_TIMEZONE && _timezone.toInt() >= 0) {
+  if(_timezone.length() > 0 && _timezone.length() <= MAXLEN_TIMEZONE && _timezone.toInt() >= -14 && _timezone.toInt() <= 14) {
     timeZone = _timezone.toInt();
   } else {
     json["timezone"] = "Error: timezone value incorrect (-14-+14)";
@@ -393,7 +394,7 @@ void handleSaveSystem() {
   }
 
   // Reconfigure NTP client
-  wifiFirstConnected = true;	
+  wifiFirstConnected = true;
 
   serializeJson(json, jsonString);
   httpServer.send(200, "application/json", jsonString);
@@ -401,12 +402,12 @@ void handleSaveSystem() {
   saveConfig();
 
   if (json.size() == 0 ) {
-    restartESP = true;
+    // restartESP = true;
   }
 }
 
 void handleNotFound() {
-  
+
   String message = "WemosEM File Not Found\n\n";
   message += "URI: ";
   message += httpServer.uri();
@@ -419,12 +420,12 @@ void handleNotFound() {
     message += " " + httpServer.argName(i) + ": " + httpServer.arg(i) + "\n";
   }
   httpServer.send(404, "text/plain", message);
-  
+
 }
 
 
 void setup_http_server() {
-  
+
   // Setup http firmware update page.
   if (MDNS.begin(wifi_hostname.c_str(), WiFi.localIP())) {
     Serial.println("MDNS Started");
@@ -436,7 +437,7 @@ void setup_http_server() {
   httpServer.on("/", handleRoot);
 
   httpServer.on("/api/status", handleStatus);
-  
+
   httpServer.on("/api/loadConfig", handleConfig);
 
   httpServer.on("/api/savewifi", handleSaveWifi);
@@ -444,7 +445,7 @@ void setup_http_server() {
   httpServer.on("/api/savecalibrate", handleSaveCalibrate);
   httpServer.on("/api/saveIotPlatforms", handleSaveIotPlatforms);
   httpServer.on("/api/savesystem", handleSaveSystem);
-  
+
 
   httpServer.on("/api/id", [](){
     String id = wifi_hostname.substring(0, 1);
@@ -455,10 +456,10 @@ void setup_http_server() {
 
   httpServer.on("/reset", handleReset);
 	httpServer.on("/reboot", handleReboot);
-  
+
 
   httpServer.onNotFound(handleNotFound);
-  
+
   httpServer.begin();
   MDNS.addService("http", "tcp", 80);
   Serial.printf("HTTPUpdateServer ready! Open http://%s.local%s in your browser and login with username '%s' and your password\n", wifi_hostname.c_str(), update_path, DEFAULT_SYSTEM_USER);
