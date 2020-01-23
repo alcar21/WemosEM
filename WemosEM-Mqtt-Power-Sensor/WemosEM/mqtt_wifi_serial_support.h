@@ -57,11 +57,11 @@ String WifiGetRssiAsQuality(int rssi)
     qualityStr = "0% No signal";
   } else if (rssi >= -50) {
     qualityStr = "100% Excelent";
-  } else if (rssi >= -60) { 
+  } else if (rssi >= -60) {
     qualityStr = String(quality) + "% Good";
-  } else if (rssi >= -70) { 
+  } else if (rssi >= -70) {
     qualityStr = String(quality) + "% Poor";
-  } else if (rssi > -80) { 
+  } else if (rssi > -80) {
     qualityStr = String(quality) + "% Bad";
   }  else {
     qualityStr = String(quality) + "% Very weak";
@@ -70,7 +70,7 @@ String WifiGetRssiAsQuality(int rssi)
 }
 
 void callbackMqtt(char* topic, byte* payload, unsigned int length) {
-  
+
   char topicWemosEM[25];
 
   Serial.print(" [MQTT] - Message arrived [");
@@ -80,7 +80,7 @@ void callbackMqtt(char* topic, byte* payload, unsigned int length) {
     Serial.print((char)payload[i]);
   }
   Serial.println();
-  
+
   char* isTopic = strstr(topic, mqtt_topic_prefix_subscribe.c_str() );
   if (!isTopic) {
     return;
@@ -89,15 +89,15 @@ void callbackMqtt(char* topic, byte* payload, unsigned int length) {
   String command = String(strrchr(topic, '/') + 1);
 
   String s_payload = String((char *)payload);
-  
+
   if(command.equals(TOPIC_VOLTAGE)) {
-    
+
     Serial.println(" [MQTT] - Setting MQTT voltage " + s_payload);
     if (s_payload.length() > 0 && s_payload.toFloat() > 0) {
       mainsVoltage = s_payload.toFloat();
     }
   } else if (command.equals(TOPIC_STATUS)) {
-    
+
     Serial.println(" [MQTT] - Processing MQTT status ");
     mqtt_client.publish(mqtt_topic_status.c_str(), (char*) "online");
   } else if (command.equals(TOPIC_RESET_KWH)) {
@@ -139,8 +139,8 @@ String build_payload() {
 void initSerial() {
 
   Serial.begin(115200);
-  Serial.println(""); 
-  Serial.println(""); 
+  Serial.println("");
+  Serial.println("");
   Serial.println("* Starting up *");
 }
 
@@ -162,9 +162,9 @@ void prepareHostMacAndEvents() {
     Serial.println("Station disconnected");
     wifiFirstConnected = false;
   });
-  
+
   // Get MAC address of ESP8266, 6 bytes in an array
-  byte mac[6]; 
+  byte mac[6];
   WiFi.macAddress(mac);
 
   My_MAC = "";
@@ -201,7 +201,7 @@ void setupWifi() {
   wifiManager.setConnectTimeout(60);
   Serial.println(" Wifi " + wifi_hostname + ", password " + system_password);
   wifiManager.autoConnect(wifi_hostname.c_str(), system_password.c_str());
-  
+
 
   if (isSTA() && ipMode == 1) {
     IPAddress ipa_ip, ipa_gateway, ipa_subnet;
@@ -228,7 +228,7 @@ void discoverHA() {
   Serial.println("Preparing message HA Discover");
   sprintf_P(message, MESSAGE_HA_CURRENT, wifi_hostname.c_str(), wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str() );
   mqtt_client.publish(topic, message, true);
-  
+
   // Power (watios)
   sprintf_P(topic, TOPIC_HA_POWER, wifi_hostname.c_str() );
   sprintf_P(message, MESSAGE_HA_POWER, wifi_hostname.c_str(), wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str(),wifi_hostname.c_str() );
@@ -249,12 +249,12 @@ void discoverHA() {
 void initMqtt() {
 
   String mqtt_topic_prefix = "wemos/" + wifi_hostname + "/";
-  
+
   mqtt_topic_prefix_subscribe = "wemos-cmd/" + wifi_hostname;
   mqtt_topic_subscribe = mqtt_topic_prefix_subscribe + "/#";
   mqtt_topic = mqtt_topic_prefix + "power";
   mqtt_topic_status = mqtt_topic_prefix + "status";
-  
+
   mqtt_client.setServer(mqtt_server.c_str(), mqtt_port);
   mqtt_client.setCallback(callbackMqtt);
 
@@ -270,7 +270,7 @@ void initMqtt() {
   int connected = false;
 
   if (mqtt_enabled) {
-    Serial.println("Connecting Mqtt...");  
+    Serial.println("Connecting Mqtt...");
     if (mqtt_username.length() > 0 && mqtt_password.length() > 0) {
         Serial.println("Connecting MQTT with user/pass");
         connected = mqtt_client.connect(wifi_hostname.c_str(), (char*)mqtt_username.c_str(), (char*)mqtt_password.c_str(), mqtt_topic_status.c_str(), lwQoS, lwRetain, (char*)lwPayload.c_str(), cleanSession);
@@ -278,12 +278,12 @@ void initMqtt() {
         connected = mqtt_client.connect(wifi_hostname.c_str(), mqtt_topic_status.c_str(), lwQoS, lwRetain, (char*)lwPayload.c_str());
     }
 
-    
-    if (connected) {    
+
+    if (connected) {
         Serial.println(" MQTT Connected. ");
         mqtt_client.subscribe((char *)mqtt_topic_subscribe.c_str());
         // Discover Notify Home Assistant
-       discoverHA();
+       // discoverHA();
     } else {
       Serial.println("failed, rc=" + String(mqtt_client.state()) + " Try again in 5 seconds");
       // Wait 5 seconds before retrying
@@ -291,7 +291,7 @@ void initMqtt() {
     }
 
   } else {
-    Serial.println("MQTT Connection is disabled...");  
+    Serial.println("MQTT Connection is disabled...");
   }
 }
 
@@ -315,7 +315,7 @@ bool mqtt_reconnect() {
 
   Serial.print(" Attempting MQTT Broker connection... ");
   int connected = false;
-  
+
   int lwQoS = 1; // send last will at least once
   int lwRetain = 1;
   String lwPayload = "Offline";
@@ -328,16 +328,14 @@ bool mqtt_reconnect() {
       connected = mqtt_client.connect(wifi_hostname.c_str(), mqtt_topic_status.c_str(), lwQoS, lwRetain, (char*)lwPayload.c_str());
   }
 
-  if (connected) {    
+  if (connected) {
     Serial.println(" MQTT Connected. ");
     mqtt_client.subscribe((char *)mqtt_topic_subscribe.c_str());
-    discoverHA();
+    // discoverHA();
   } else {
     Serial.println("failed, rc=" + String(mqtt_client.state()) + " Try again...");
   }
 
   return mqtt_client.connected();
-  
+
 } // End of reconnect
-
-

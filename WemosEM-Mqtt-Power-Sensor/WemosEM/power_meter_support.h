@@ -1,7 +1,7 @@
 
 /*
   Metering power functions
- 
+
   Alfonso C. Alvarez (Alcar), 14nd September 2019
 
   @author <a href="mailto:alcar21@gmail.com">Alfonso Carlos Alvarez Reyes</a>
@@ -13,7 +13,7 @@ long lastEMRead = 0;  // Last EM Read
 long lastMsgMQTT = 0; // Last Message MQTT
 
 void resetKwh() {
-  
+
   beforeResetKiloWattHours = kiloWattHours;
   watiosTotal = 0.0;
   kiloWattHours = 0.0;
@@ -50,8 +50,8 @@ void em_read(bool calibrate) {
     lastEMRead = now;
 
     rmsCurrent = emon.calcIrms(NUM_SAMPLES);  // Calculate Irms only
-    
-    rmsPower = rmsCurrent * mainsVoltage;                       // Calculates RMS Power  
+
+    rmsPower = rmsCurrent * mainsVoltage;                       // Calculates RMS Power
     watiosTotal += ((double)rmsPower * ((millis()-lastTimeMeasure) / 1000.0)/3600.0); // Calculates kilowatt hours used since last reboot. 3600 = 60min*60sec / 1000.0 watios = kwh
 
     kiloWattHours = watiosTotal / 1000.0;
@@ -62,7 +62,7 @@ void em_read(bool calibrate) {
     Serial.print(mainsVoltage);
     Serial.print(" Watios: ");
     Serial.print(watiosTotal);
-    
+
     Serial.print(" kwh: ");
     Serial.print(kiloWattHours);
     Serial.print(" Before reset kwh: ");
@@ -71,10 +71,10 @@ void em_read(bool calibrate) {
     Serial.println(lastTimeMeasure);
 
     // If not AP mode
-    if (isSTA()) {
-      saveConfig();
-    }
-    
+    // if (isSTA()) {
+      // saveConfig();
+    // }
+
     lastTimeMeasure = millis();
   }
 
@@ -119,9 +119,9 @@ void em_loop() {
   if (!mqtt_client.connected()) {
     // reconnect if not
     mqtt_reconnect();
-  } 
+  }
 
-  
+
   String payload = build_payload();
 
   Serial.print(" [METER] - Payload: ");
@@ -137,10 +137,10 @@ void em_loop() {
     mqtt_client.publish(mqtt_topic_status.c_str(), (char*) "online", 0);
     Serial.print(" [MQTT] - Published: ");
     Serial.print(mqtt_topic_status);
-    Serial.print(" > online");
+    Serial.println(" > online");
   } else {
     Serial.print("ERROR MQTT Topic not Published: ");
-    Serial.print(mqtt_topic);
+    Serial.println(mqtt_topic);
   }
 
   Status_LED_Off;
