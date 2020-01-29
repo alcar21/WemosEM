@@ -34,6 +34,10 @@
 #define DEFAULT_SYSTEM_USER "wemosem"
 #define DEFAULT_SYSTEM_PASSWORD "infinito&masalla"
 
+// MPU6050 I2C Connections
+#define SCL_PIN D6
+#define SDA_PIN D7
+
 // VARIABLES
 String system_password = DEFAULT_SYSTEM_PASSWORD;
 int ipMode = DEFAULT_IP_MODE; // 0 = DHCP, 1 = Static

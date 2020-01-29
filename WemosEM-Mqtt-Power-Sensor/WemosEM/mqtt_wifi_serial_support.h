@@ -139,6 +139,7 @@ String build_payload() {
 void initSerial() {
 
   Serial.begin(115200);
+  delay(500);
   Serial.println("");
   Serial.println("");
   Serial.println("* Starting up *");

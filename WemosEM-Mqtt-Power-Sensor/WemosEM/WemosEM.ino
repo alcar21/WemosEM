@@ -31,6 +31,7 @@
 #include "iot_platforms_support.h"
 #include "power_meter_support.h"
 #include "webserver_support.h"
+#include "MPU6050_motion.h"
 
 // Initial setup
 void setup(void) {
@@ -64,6 +65,8 @@ void setup(void) {
 
   setupOTA();
 
+  setupMPU6050();
+
   emon.current(A0, Ical);
   em_read(true);
 
@@ -79,6 +82,8 @@ void loop() {
   ntp_loop();
 
   em_loop();
+
+  // loopMPU6050();
 
   mqtt_client.loop();
   httpServer.handleClient(); //handles requests for the firmware update page
