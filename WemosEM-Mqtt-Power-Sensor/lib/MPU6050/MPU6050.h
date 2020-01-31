@@ -237,7 +237,7 @@ class MPU6050
 	Vector tg, dg; // Threshold and Delta for Gyro
 	Vector th;     // Threshold
 	Activites a;   // Activities
-	
+
 	float dpsPerDigit, rangePerDigit;
 	float actualThreshold;
 	bool useCalibrate;

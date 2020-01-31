@@ -49,7 +49,7 @@ void setup(void) {
 
   setupWifi();
 
-  emon.current(A0, Ical);             // Current: input pin A6=D4, calibration factor
+  // emon.current(A0, Ical);             // Current: input pin A6=D4, calibration factor
 
   initMqtt();
 
@@ -67,8 +67,8 @@ void setup(void) {
 
   setupMPU6050();
 
-  emon.current(A0, Ical);
-  em_read(true);
+  // emon.current(A0, Ical);
+  // em_read(true);
 
   Serial.println("Setup finished");
 } // End of setup
@@ -81,9 +81,9 @@ void loop() {
 
   ntp_loop();
 
-  em_loop();
+  // em_loop();
 
-  // loopMPU6050();
+  loopMPU6050();
 
   mqtt_client.loop();
   httpServer.handleClient(); //handles requests for the firmware update page
