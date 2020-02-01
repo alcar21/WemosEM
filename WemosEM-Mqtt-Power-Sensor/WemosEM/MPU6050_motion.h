@@ -142,7 +142,7 @@ VectorFloat gravity;    // [x, y, z]            gravity vector
 float euler[3];         // [psi, theta, phi]    Euler angle container
 float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 
-int16_t previous;
+double previous = 0;
 
 // packet structure for InvenSense teapot demo
 uint8_t teapotPacket[14] = { '$', 0x02, 0,0, 0,0, 0,0, 0,0, 0x00, 0x00, '\r', '\n' };
@@ -248,7 +248,6 @@ void setupMPU6050() {
 
     // configure LED for output
     pinMode(LED_PIN, OUTPUT);
-    previous = 0;
 }
 
 
@@ -351,7 +350,7 @@ void loopMPU6050() {
             mpu.dmpGetGravity(&gravity, &q);
             mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
 
-            int16_t magnitude;
+            double magnitude;
 
             magnitude = abs(aaReal.x) + abs(aaReal.y) + abs(aaReal.z);
 
@@ -368,8 +367,7 @@ void loopMPU6050() {
             Serial.println(magnitude - previous);
             */
             rmsCurrent = magnitude;
-            rmsPower = rmsPower + magnitude;
-            previous = magnitude;
+            previous = previous + magnitude;
 
         #endif
 
@@ -415,6 +413,8 @@ void loopMPU6050() {
     }
 
     lastMsgMQTT = now;
+
+    rmsPower = previous;
     String payload = build_payload();
 
     Serial.print(" [METER] - Payload: ");
@@ -435,5 +435,5 @@ void loopMPU6050() {
       Serial.print("ERROR MQTT Topic not Published: ");
       Serial.println(mqtt_topic);
     }
-    rmsPower = 0;
+    previous = 0;
 }
