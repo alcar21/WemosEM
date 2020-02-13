@@ -254,6 +254,7 @@
       $('.watios-value').html(data.watios);
       $('.kwh-value').html(data.kwh);
       $('.ical-value').html(data.ical);
+      $('.motion-value').html(data.motion);
       $('.mqttreconnected-value').html(data.mqttreconnected);
       $('.wifidb-value').html(data.wifidb);
       $('.uptime-value').html(data.uptime);
@@ -417,6 +418,10 @@
               <td class="ical-value">0.00</td>
             </tr>
             <tr>
+              <th scope="row">Motion</th>
+              <td class="motion-value">0</td>
+            </tr>
+            <tr>
               <th scope="row">MQTT Reconnected count</th>
               <td class="mqttreconnected-value">0</td>
             </tr>
@@ -567,7 +572,7 @@
           <div class="card-header bg-success text-white">
             <button type="button" class="float-right close" aria-label="Close">
               <span aria-hidden="true">&times;</span>
-            </button>  
+            </button>
             <h5 style="margin: 0;">Calibrate</h5>
           </div>
           <div class="card-body">
@@ -612,7 +617,7 @@
                     <div class="alert alert-warning" role="alert">
                       <b>Warning: </b>Blynk integration takes a lot of resources
                     </div>
-                    <div class="card-text"> 
+                    <div class="card-text">
                       <div class="col-md-12 mb-2">
                         <div class="form-group">
                           <label class="switch">

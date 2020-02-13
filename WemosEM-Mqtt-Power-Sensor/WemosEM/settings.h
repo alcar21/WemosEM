@@ -33,10 +33,11 @@
 // SYSTEM
 #define DEFAULT_SYSTEM_USER "wemosem"
 #define DEFAULT_SYSTEM_PASSWORD "infinito&masalla"
-
-// MPU6050 I2C Connections
-// #define SCL_PIN D6
-// #define SDA_PIN D7
+// Motion Sensor
+#define MOTION           // Uncomment to enable
+#define INTERRUPT_PIN D5  // use pin 2 on Arduino Uno & most boards
+#define SCL_PIN D6
+#define SDA_PIN D7
 
 // VARIABLES
 String system_password = DEFAULT_SYSTEM_PASSWORD;

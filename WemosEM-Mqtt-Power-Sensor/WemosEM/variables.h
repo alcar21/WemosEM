@@ -86,6 +86,10 @@ double rmsPower = 0;                  // Measured power in W
 unsigned long lastTimeMeasure = 0;    // Last time measure in ms
 boolean isResetEnergyToday = false;    // reset energy on setup day
 
+// MPU 6050 Motion sensor
+double motion = 0;
+double motionAverage = 0;
+
 // ThingSpeak
 unsigned long lastTimeMeasureTS = 0;
 

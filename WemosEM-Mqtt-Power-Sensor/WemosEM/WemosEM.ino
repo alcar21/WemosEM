@@ -65,10 +65,12 @@ void setup(void) {
 
   setupOTA();
 
+  #ifdef MOTION
   setupMPU6050();
+  #endif
 
-  // emon.current(A0, Ical);
-  // em_read(true);
+  emon.current(A0, Ical);
+  em_read(true);
 
   Serial.println("Setup finished");
 } // End of setup
@@ -81,9 +83,11 @@ void loop() {
 
   ntp_loop();
 
-  // em_loop();
-
+  #ifdef MOTION
   loopMPU6050();
+  #endif
+
+  em_loop();
 
   mqtt_client.loop();
   httpServer.handleClient(); //handles requests for the firmware update page

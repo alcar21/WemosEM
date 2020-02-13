@@ -121,7 +121,6 @@ void em_loop() {
     mqtt_reconnect();
   }
 
-
   String payload = build_payload();
 
   Serial.print(" [METER] - Payload: ");

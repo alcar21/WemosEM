@@ -123,6 +123,10 @@ String build_payload() {
   json["watios"] = String(rmsPower);
   json["kwh"] = String(kiloWattHours);
   json["beforeKwh"] = String(beforeResetKiloWattHours);
+  #ifdef MOTION
+  json["motion"] = String(motionAverage);
+  motion = 0;
+  #endif
   json["ical"] = String(Ical);
   json["mqttreconnected"] = String(reconnected_count);
   json["wifidb"] = rssi;

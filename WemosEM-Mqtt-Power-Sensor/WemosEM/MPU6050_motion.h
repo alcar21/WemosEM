@@ -119,12 +119,6 @@ MPU6050 mpu;
 // format used for the InvenSense teapot demo
 //#define OUTPUT_TEAPOT
 
-
-
-#define INTERRUPT_PIN D5  // use pin 2 on Arduino Uno & most boards
-#define LED_PIN D0 // (Arduino is 13, Teensy is 11, Teensy++ is 6)
-bool blinkState = false;
-
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
 uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
@@ -141,8 +135,6 @@ VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measure
 VectorFloat gravity;    // [x, y, z]            gravity vector
 float euler[3];         // [psi, theta, phi]    Euler angle container
 float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
-
-double previous = 0;
 
 // packet structure for InvenSense teapot demo
 uint8_t teapotPacket[14] = { '$', 0x02, 0,0, 0,0, 0,0, 0,0, 0x00, 0x00, '\r', '\n' };
@@ -167,8 +159,6 @@ void ICACHE_RAM_ATTR dmpDataReady() {
 void setupMPU6050() {
     // join I2C bus (I2Cdev library doesn't do this automatically)
     #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-    int SCL_PIN=D6;
-    int SDA_PIN=D7;
     Wire.begin(SDA_PIN, SCL_PIN);
     Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
     #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
@@ -246,8 +236,6 @@ void setupMPU6050() {
         Serial.println(F(")"));
     }
 
-    // configure LED for output
-    pinMode(LED_PIN, OUTPUT);
 }
 
 
@@ -366,8 +354,8 @@ void loopMPU6050() {
             Serial.print("\t");
             Serial.println(magnitude - previous);
             */
-            rmsCurrent = magnitude;
-            previous = previous + magnitude;
+
+            motionAverage = magnitude;
 
         #endif
 
@@ -400,40 +388,5 @@ void loopMPU6050() {
             Serial.write(teapotPacket, 14);
             teapotPacket[11]++; // packetCount, loops at 0xFF on purpose
         #endif
-
-        // blink LED to indicate activity
-        blinkState = !blinkState;
-        digitalWrite(LED_PIN, blinkState);
     }
-
-    unsigned long now = millis();
-    // If enough time since sending last message, or if birth message must be published
-    if (now - lastMsgMQTT < message_interval) {
-      return;
-    }
-
-    lastMsgMQTT = now;
-
-    rmsPower = previous;
-    String payload = build_payload();
-
-    Serial.print(" [METER] - Payload: ");
-    Serial.println(payload);
-
-    Status_LED_On;
-    // Publish a MQTT message with the payload
-    if (mqtt_client.publish(mqtt_topic.c_str(), (char*) payload.c_str(), 0)) {
-      // Serial.print(" [MQTT] - Published: ");
-      // Serial.print(mqtt_topic);
-      // Serial.print(" > ");
-      // Serial.println(payload);
-      mqtt_client.publish(mqtt_topic_status.c_str(), (char*) "online", 0);
-      // Serial.print(" [MQTT] - Published: ");
-      // Serial.print(mqtt_topic_status);
-      // Serial.println(" > online");
-    } else {
-      Serial.print("ERROR MQTT Topic not Published: ");
-      Serial.println(mqtt_topic);
-    }
-    previous = 0;
 }
