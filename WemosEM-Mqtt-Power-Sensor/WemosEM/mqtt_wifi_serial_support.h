@@ -125,7 +125,7 @@ String build_payload() {
   json["beforeKwh"] = String(beforeResetKiloWattHours);
   #ifdef MOTION
   json["motion"] = String(motionAverage);
-  motion = 0;
+  json["temperature"] = String(temperature);
   #endif
   json["ical"] = String(Ical);
   json["mqttreconnected"] = String(reconnected_count);

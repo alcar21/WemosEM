@@ -389,4 +389,7 @@ void loopMPU6050() {
             teapotPacket[11]++; // packetCount, loops at 0xFF on purpose
         #endif
     }
+
+    temperature = mpu.getTemperature() / 340.0 + 36.53;
+
 }

@@ -89,6 +89,7 @@ boolean isResetEnergyToday = false;    // reset energy on setup day
 // MPU 6050 Motion sensor
 double motion = 0;
 double motionAverage = 0;
+double temperature = 0;
 
 // ThingSpeak
 unsigned long lastTimeMeasureTS = 0;
