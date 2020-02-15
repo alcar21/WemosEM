@@ -139,7 +139,24 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
 // packet structure for InvenSense teapot demo
 uint8_t teapotPacket[14] = { '$', 0x02, 0,0, 0,0, 0,0, 0,0, 0x00, 0x00, '\r', '\n' };
 
+// Motion
 
+int16_t ax_min = 999999, ax_max = -999999, ax_range;
+int16_t ay_min = 999999, ay_max = -999999, ay_range;
+int16_t az_min = 999999, az_max = -999999, az_range;
+
+
+int16_t trackMinMax(int16_t current, int16_t *min, int16_t *max)
+{
+  if (current > *max)
+  {
+    *max = current;
+  }
+  else if (current < *min)
+  {
+    *min = current;
+  }
+}
 
 // ================================================================
 // ===               INTERRUPT DETECTION ROUTINE                ===
@@ -340,8 +357,12 @@ void loopMPU6050() {
 
             mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
             // magnitude = abs(aaReal.x) + abs(aaReal.y) + abs(aaReal.z);
-            magnitude = abs(gx) + abs(gy) + abs(gz);
+            // magnitude = abs(gx) + abs(gy) + abs(gz);
+            // magnitude = abs(ax) + abs(ay) + abs(az);
 
+            trackMinMax(ax, &ax_min, &ax_max);
+            trackMinMax(ay, &ay_min, &ay_max);
+            trackMinMax(az, &az_min, &az_max);
 
             /*
             Serial.print("areal\t");
@@ -356,7 +377,7 @@ void loopMPU6050() {
             Serial.println(magnitude - previous);
             */
 
-            motionAverage = magnitude;
+            // motionAverage = magnitude;
 
         #endif
 
@@ -399,6 +420,34 @@ void loopMPU6050() {
       return;
     }
 
+    ax_range = ax_max - ax_min;
+    ay_range = ay_max - ay_min;
+    az_range = az_max - az_min;
+
+    /*
+    Serial.print("max min: ");
+    Serial.print(ax_max);
+    Serial.print(" - ");
+    Serial.print(ax_min);
+    Serial.print("\t");
+    Serial.print(ay_max);
+    Serial.print(" - ");
+    Serial.print(ay_min);
+    Serial.print("\t");
+    Serial.print(az_max);
+    Serial.print(" - ");
+    Serial.print(az_min);
+    Serial.println("\t");
+    */
+
+    ax_min = 999999, ax_max = -999999;
+    ay_min = 999999, ay_max = -999999;
+    az_min = 999999, az_max = -999999;
+
+    motionAverage = ax_range + ay_range + az_range;
+    // motionAverage = magnitude;
+
+
     Serial.print("areal: ");
     Serial.print(aaReal.x);
     Serial.print("\t");
@@ -412,6 +461,11 @@ void loopMPU6050() {
         Serial.print(az); Serial.print("\t gyro: ");
         Serial.print(gx); Serial.print("\t");
         Serial.print(gy); Serial.print("\t");
-        Serial.println(gz);
+        Serial.print(gz);
+
+        Serial.print("\taccel range: ");
+        Serial.print(ax_range); Serial.print("\t");
+        Serial.print(ay_range); Serial.print("\t");
+        Serial.println(az_range);
 
 }
