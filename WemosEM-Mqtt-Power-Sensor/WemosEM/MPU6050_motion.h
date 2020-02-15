@@ -198,10 +198,10 @@ void setupMPU6050() {
     devStatus = mpu.dmpInitialize();
 
     // supply your own gyro offsets here, scaled for min sensitivity
-    mpu.setXGyroOffset(220);
-    mpu.setYGyroOffset(76);
-    mpu.setZGyroOffset(-85);
-    mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
+    mpu.setXGyroOffset(114);
+    mpu.setYGyroOffset(-7);
+    mpu.setZGyroOffset(-19);
+    mpu.setZAccelOffset(4728); // 1688 factory default for my test chip
 
     // make sure it worked (returns 0 if so)
     if (devStatus == 0) {
@@ -237,8 +237,6 @@ void setupMPU6050() {
     }
 
 }
-
-
 
 // ================================================================
 // ===                    MAIN PROGRAM LOOP                     ===
@@ -340,7 +338,10 @@ void loopMPU6050() {
 
             double magnitude;
 
-            magnitude = abs(aaReal.x) + abs(aaReal.y) + abs(aaReal.z);
+            mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+            // magnitude = abs(aaReal.x) + abs(aaReal.y) + abs(aaReal.z);
+            magnitude = abs(gx) + abs(gy) + abs(gz);
+
 
             /*
             Serial.print("areal\t");
@@ -391,5 +392,26 @@ void loopMPU6050() {
     }
 
     temperature = mpu.getTemperature() / 340.0 + 36.53;
+
+    unsigned long now = millis();
+    // If enough time since sending last message, or if birth message must be published
+    if (now - lastMsgMQTT < message_interval) {
+      return;
+    }
+
+    Serial.print("areal: ");
+    Serial.print(aaReal.x);
+    Serial.print("\t");
+    Serial.print(aaReal.y);
+    Serial.print("\t");
+    Serial.print(aaReal.z);
+
+        Serial.print("\taccel: ");
+        Serial.print(ax); Serial.print("\t");
+        Serial.print(ay); Serial.print("\t");
+        Serial.print(az); Serial.print("\t gyro: ");
+        Serial.print(gx); Serial.print("\t");
+        Serial.print(gy); Serial.print("\t");
+        Serial.println(gz);
 
 }

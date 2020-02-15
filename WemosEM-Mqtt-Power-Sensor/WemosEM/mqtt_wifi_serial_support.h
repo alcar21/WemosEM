@@ -146,7 +146,8 @@ void initSerial() {
   delay(500);
   Serial.println("");
   Serial.println("");
-  Serial.println("* Starting up *");
+  Serial.print("* Starting up *");
+  Serial.println(VERSION);
 }
 
 void prepareHostMacAndEvents() {
