@@ -122,7 +122,7 @@ void em_loop() {
       // Check if we're still connected to MQTT broker
   if (!mqtt_client.connected()) {
     // reconnect if not
-    mqtt_reconnect();
+    initMqtt();
   }
 
   String payload = build_payload();

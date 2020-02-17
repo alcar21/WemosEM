@@ -206,8 +206,11 @@ void setupWifi() {
   wifiManager.setConfigPortalTimeout(180);
   wifiManager.setConnectTimeout(60);
   Serial.println(" Wifi " + wifi_hostname + ", password " + system_password);
-  wifiManager.autoConnect(wifi_hostname.c_str(), system_password.c_str());
-
+  if (system_password.length() > 0 ) {
+    wifiManager.autoConnect(wifi_hostname.c_str(), system_password.c_str());
+  } else {
+    wifiManager.autoConnect(wifi_hostname.c_str());
+  }
 
   if (isSTA() && ipMode == 1) {
     IPAddress ipa_ip, ipa_gateway, ipa_subnet;

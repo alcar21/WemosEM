@@ -72,6 +72,8 @@ void setup(void) {
   emon.current(A0, Ical);
   em_read(true);
 
+  lastMsgMQTT = millis();
+  lastEMRead = millis();
   Serial.println("Setup finished");
 } // End of setup
 

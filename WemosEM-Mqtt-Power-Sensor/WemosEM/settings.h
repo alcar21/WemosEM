@@ -32,7 +32,7 @@
 #define DEFAULT_MINUTES_TIMEZONE 0
 // SYSTEM
 #define DEFAULT_SYSTEM_USER "wemosem"
-#define DEFAULT_SYSTEM_PASSWORD "infinito&masalla"
+#define DEFAULT_SYSTEM_PASSWORD ""
 // Motion Sensor
 #define MOTION           // Uncomment to enable
 #define INTERRUPT_PIN D5  // use pin 2 on Arduino Uno & most boards
