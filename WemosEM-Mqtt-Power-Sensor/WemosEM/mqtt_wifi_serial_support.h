@@ -133,6 +133,7 @@ String build_payload() {
   json["uptime"] = NTP.getUptimeString ();
   json["time"] = NTP.getTimeDateString();
   json["freemem"] = ESP.getFreeHeap();
+  json["version"] = String(VERSION);
 
   serializeJson(json, jsonString);
 
@@ -287,9 +288,9 @@ void initMqtt() {
         connected = mqtt_client.connect(wifi_hostname.c_str(), mqtt_topic_status.c_str(), lwQoS, lwRetain, (char*)lwPayload.c_str());
     }
 
-
+    ++reconnected_count;
     if (connected) {
-        Serial.println(" MQTT Connected. ");
+        Serial.println("MQTT Connected. ");
         mqtt_client.subscribe((char *)mqtt_topic_subscribe.c_str());
         // Discover Notify Home Assistant
        // discoverHA();
