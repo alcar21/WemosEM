@@ -1,0 +1,390 @@
+[{
+  "id": "eab2456e.27828",
+  "type": "mqtt in",
+  "z": "2479e772.6c2b88",
+  "name": "Washer/Dryer",
+  "topic": "wemos/wemosEM-55FB33/power",
+  "qos": "0",
+  "datatype": "json",
+  "broker": "c393578c.2b768",
+  "x": 70,
+  "y": 120,
+  "wires": [
+    ["9311c3ae.41c65", "114ee724.895b31"]
+  ]
+}, {
+  "id": "90df5ea8.5381c8",
+  "type": "debug",
+  "z": "2479e772.6c2b88",
+  "name": "Average",
+  "active": true,
+  "tosidebar": false,
+  "console": false,
+  "tostatus": true,
+  "complete": "payload",
+  "targetType": "msg",
+  "x": 820,
+  "y": 60,
+  "wires": []
+}, {
+  "id": "9311c3ae.41c65",
+  "type": "function",
+  "z": "2479e772.6c2b88",
+  "name": "24 Average",
+  "func": "// determines the average of all payload values passed in \n// over the specified time range\nconst range = 1 * 60 * 1000;   // window time millisecs\nlet buffer = context.get('buffer') || [];\nlet total = context.get('total') || 0;   // the accumulated total so far\n\nlet now = new Date();\nlet value = Number(msg.payload.watios);\n// remove any samples that are too old\nwhile (buffer[0] && buffer.length > 24 ) {\n    // remove oldest sample from array and total\n    // node.warn(`removing oldest ${buffer[0].timestamp}`);\n    total -= buffer[0].value;\n    buffer.shift();\n}\n// add the new sample to the end\nbuffer.push({timestamp: now, value: value});\ntotal += value;\n\ncontext.set('buffer', buffer);\ncontext.set('total', total);\n\nmsg.payload = Math.round(total/buffer.length*10)/10;\n// node.warn(`length: ${buffer.length}, total: ${total}, average: ${msg.payload}`);\nreturn msg;",
+  "outputs": 1,
+  "noerr": 0,
+  "x": 250,
+  "y": 120,
+  "wires": [
+    ["47673b4c.b54034"]
+  ]
+}, {
+  "id": "fabc532c.2f17e8",
+  "type": "function",
+  "z": "2479e772.6c2b88",
+  "name": "Combine",
+  "func": "msg.payload = { average: msg.payload, count: msg.count };\nreturn msg;",
+  "outputs": 1,
+  "noerr": 0,
+  "x": 560,
+  "y": 120,
+  "wires": [
+    ["515a2701.3fff28"]
+  ]
+}, {
+  "id": "515a2701.3fff28",
+  "type": "function",
+  "z": "2479e772.6c2b88",
+  "name": "Alarm",
+  "func": "var msg2 = {};\nlet state = context.get('state') || \"off\";\nif (msg.payload.average > 30 && state === \"off\") { \n    state=\"on\"; \n    msg.payload.state = state;\n    msg2.payload = msg.payload;\n} else if (msg.payload.average < 15 && state === \"on\") {\n    state=\"off\"; \n    msg.payload.state = state;\n    msg2.payload = msg.payload;\n} else { \n    msg.payload.state = state;\n    }\n\ncontext.set('state', state);\n\nif ( msg2.payload ) { \n    return [msg,msg2];\n} else { \n    return msg;\n}",
+  "outputs": 2,
+  "noerr": 0,
+  "x": 710,
+  "y": 120,
+  "wires": [
+    ["90df5ea8.5381c8", "994c2ca0.bf555"],
+    ["bdd3ab76.bbc318", "f8cf7e41.441428"]
+  ]
+}, {
+  "id": "bdd3ab76.bbc318",
+  "type": "debug",
+  "z": "2479e772.6c2b88",
+  "name": "Alarm",
+  "active": false,
+  "tosidebar": false,
+  "console": true,
+  "tostatus": true,
+  "complete": "payload",
+  "targetType": "msg",
+  "x": 820,
+  "y": 220,
+  "wires": []
+}, {
+  "id": "ec0b8516.bdd7a",
+  "type": "homekit-service",
+  "z": "2479e772.6c2b88",
+  "isParent": true,
+  "bridge": "cc234500.cbcc3",
+  "parentService": "",
+  "name": "Washer In Use",
+  "serviceName": "ContactSensor",
+  "topic": "",
+  "filter": false,
+  "manufacturer": "Node-Red",
+  "model": "Default Model",
+  "serialNo": "Default Serial Number",
+  "characteristicProperties": "{}",
+  "x": 680,
+  "y": 280,
+  "wires": [
+    []
+  ]
+}, {
+  "id": "f8cf7e41.441428",
+  "type": "function",
+  "z": "2479e772.6c2b88",
+  "name": "Homekit",
+  "func": "switch(msg.payload.state) {\n    case(\"on\"):\n        msg.payload = { ContactSensorState: 1};\n        break;\n    case(\"off\"):\n        msg.payload = { ContactSensorState: 0};\n}\nreturn msg;",
+  "outputs": 1,
+  "noerr": 0,
+  "x": 500,
+  "y": 220,
+  "wires": [
+    ["ec0b8516.bdd7a"]
+  ]
+}, {
+  "id": "994c2ca0.bf555",
+  "type": "trigger",
+  "z": "2479e772.6c2b88",
+  "op1": "",
+  "op2": "0",
+  "op1type": "nul",
+  "op2type": "json",
+  "duration": "11",
+  "extend": true,
+  "units": "min",
+  "reset": "",
+  "bytopic": "all",
+  "name": "",
+  "x": 290,
+  "y": 280,
+  "wires": [
+    ["a3d62ca6.e2a7d8"]
+  ]
+}, {
+  "id": "a3d62ca6.e2a7d8",
+  "type": "function",
+  "z": "2479e772.6c2b88",
+  "name": "No Response",
+  "func": "msg.payload = {On: 'NO_RESPONSE'};\nreturn msg;",
+  "outputs": 1,
+  "noerr": 0,
+  "x": 480,
+  "y": 280,
+  "wires": [
+    ["994c2ca0.bf555", "ec0b8516.bdd7a"]
+  ]
+}, {
+  "id": "c98ab3e8.99d688",
+  "type": "inject",
+  "z": "2479e772.6c2b88",
+  "name": "Prime",
+  "topic": "",
+  "payload": "",
+  "payloadType": "date",
+  "repeat": "",
+  "crontab": "",
+  "once": true,
+  "onceDelay": "1",
+  "x": 110,
+  "y": 280,
+  "wires": [
+    ["994c2ca0.bf555"]
+  ]
+}, {
+  "id": "47673b4c.b54034",
+  "type": "counter",
+  "z": "2479e772.6c2b88",
+  "name": "Count",
+  "init": "0",
+  "step": "1",
+  "lower": null,
+  "upper": null,
+  "mode": "increment",
+  "outputs": "1",
+  "x": 410,
+  "y": 120,
+  "wires": [
+    ["fabc532c.2f17e8"]
+  ]
+}, {
+  "id": "c5399daf.9e374",
+  "type": "debug",
+  "z": "2479e772.6c2b88",
+  "name": "Average",
+  "active": true,
+  "tosidebar": false,
+  "console": false,
+  "tostatus": true,
+  "complete": "payload",
+  "targetType": "msg",
+  "x": 820,
+  "y": 380,
+  "wires": []
+}, {
+  "id": "114ee724.895b31",
+  "type": "function",
+  "z": "2479e772.6c2b88",
+  "name": "24 Average",
+  "func": "// determines the average of all payload values passed in \n// over the specified time range\nconst range = 1 * 60 * 1000;   // window time millisecs\nlet buffer = context.get('motionBuffer') || [];\nlet total = context.get('motionTotal') || 0;   // the accumulated total so far\n\nlet now = new Date();\nlet value = Number(msg.payload.motion);\n// remove any samples that are too old\nwhile (buffer[0] && buffer.length > 24 ) {\n    // remove oldest sample from array and total\n    // node.warn(`removing oldest ${buffer[0].timestamp}`);\n    total -= buffer[0].value;\n    buffer.shift();\n}\n// add the new sample to the end\nbuffer.push({timestamp: now, value: value});\ntotal += value;\n\ncontext.set('motionBuffer', buffer);\ncontext.set('motionTotal', total);\n\nmsg.payload = Math.round(total/buffer.length*10)/10;\n// node.warn(`length: ${buffer.length}, total: ${total}, average: ${msg.payload}`);\nreturn msg;",
+  "outputs": 1,
+  "noerr": 0,
+  "x": 250,
+  "y": 440,
+  "wires": [
+    ["92919710.d862e"]
+  ]
+}, {
+  "id": "45ff2a00.d38bd4",
+  "type": "function",
+  "z": "2479e772.6c2b88",
+  "name": "Combine",
+  "func": "msg.payload = { average: msg.payload, count: msg.count };\nreturn msg;",
+  "outputs": 1,
+  "noerr": 0,
+  "x": 560,
+  "y": 440,
+  "wires": [
+    ["78e034aa.8b3144"]
+  ]
+}, {
+  "id": "78e034aa.8b3144",
+  "type": "function",
+  "z": "2479e772.6c2b88",
+  "name": "Alarm",
+  "func": "var msg2 = {};\nlet state = context.get('state') || \"off\";\nif (msg.payload.average > 10000 && state === \"off\") { \n    state=\"on\"; \n    msg.payload.state = state;\n    msg2.payload = msg.payload;\n} else if (msg.payload.average < 6000 && state === \"on\") {\n    state=\"off\"; \n    msg.payload.state = state;\n    msg2.payload = msg.payload;\n} else { \n    msg.payload.state = state;\n    }\n\ncontext.set('state', state);\n\nif ( msg2.payload ) { \n    return [msg,msg2];\n} else { \n    return msg;\n}",
+  "outputs": 2,
+  "noerr": 0,
+  "x": 710,
+  "y": 440,
+  "wires": [
+    ["c5399daf.9e374", "11172163.4a5ea7"],
+    ["7d9d1e5b.05359", "1067e1bb.c0b926"]
+  ]
+}, {
+  "id": "7d9d1e5b.05359",
+  "type": "debug",
+  "z": "2479e772.6c2b88",
+  "name": "Alarm",
+  "active": true,
+  "tosidebar": true,
+  "console": true,
+  "tostatus": true,
+  "complete": "payload",
+  "targetType": "msg",
+  "x": 820,
+  "y": 540,
+  "wires": []
+}, {
+  "id": "a055b393.6109a",
+  "type": "homekit-service",
+  "z": "2479e772.6c2b88",
+  "isParent": true,
+  "bridge": "cc234500.cbcc3",
+  "parentService": "",
+  "name": "Dryer In Use",
+  "serviceName": "ContactSensor",
+  "topic": "",
+  "filter": false,
+  "manufacturer": "Node-Red",
+  "model": "Default Model",
+  "serialNo": "Default Serial Number",
+  "characteristicProperties": "{}",
+  "x": 670,
+  "y": 600,
+  "wires": [
+    []
+  ]
+}, {
+  "id": "1067e1bb.c0b926",
+  "type": "function",
+  "z": "2479e772.6c2b88",
+  "name": "Homekit",
+  "func": "switch(msg.payload.state) {\n    case(\"on\"):\n        msg.payload = { ContactSensorState: 1};\n        break;\n    case(\"off\"):\n        msg.payload = { ContactSensorState: 0};\n}\nreturn msg;",
+  "outputs": 1,
+  "noerr": 0,
+  "x": 500,
+  "y": 540,
+  "wires": [
+    ["a055b393.6109a"]
+  ]
+}, {
+  "id": "11172163.4a5ea7",
+  "type": "trigger",
+  "z": "2479e772.6c2b88",
+  "op1": "",
+  "op2": "0",
+  "op1type": "nul",
+  "op2type": "json",
+  "duration": "11",
+  "extend": true,
+  "units": "min",
+  "reset": "",
+  "bytopic": "all",
+  "name": "",
+  "x": 290,
+  "y": 600,
+  "wires": [
+    ["22888e70.770eb2"]
+  ]
+}, {
+  "id": "22888e70.770eb2",
+  "type": "function",
+  "z": "2479e772.6c2b88",
+  "name": "No Response",
+  "func": "msg.payload = {On: 'NO_RESPONSE'};\nreturn msg;",
+  "outputs": 1,
+  "noerr": 0,
+  "x": 480,
+  "y": 600,
+  "wires": [
+    ["11172163.4a5ea7", "a055b393.6109a"]
+  ]
+}, {
+  "id": "5bd4132c.c27e7c",
+  "type": "inject",
+  "z": "2479e772.6c2b88",
+  "name": "Prime",
+  "topic": "",
+  "payload": "",
+  "payloadType": "date",
+  "repeat": "",
+  "crontab": "",
+  "once": true,
+  "onceDelay": "1",
+  "x": 110,
+  "y": 600,
+  "wires": [
+    ["11172163.4a5ea7"]
+  ]
+}, {
+  "id": "92919710.d862e",
+  "type": "counter",
+  "z": "2479e772.6c2b88",
+  "name": "Count",
+  "init": "0",
+  "step": "1",
+  "lower": null,
+  "upper": null,
+  "mode": "increment",
+  "outputs": "1",
+  "x": 410,
+  "y": 440,
+  "wires": [
+    ["45ff2a00.d38bd4"]
+  ]
+}, {
+  "id": "c393578c.2b768",
+  "type": "mqtt-broker",
+  "z": "",
+  "name": "Sheldon",
+  "broker": "sheldon.local",
+  "port": "1883",
+  "clientid": "",
+  "usetls": false,
+  "compatmode": false,
+  "keepalive": "60",
+  "cleansession": true,
+  "birthTopic": "",
+  "birthQos": "0",
+  "birthRetain": "false",
+  "birthPayload": "",
+  "closeTopic": "",
+  "closeQos": "0",
+  "closeRetain": "false",
+  "closePayload": "",
+  "willTopic": "",
+  "willQos": "0",
+  "willRetain": "false",
+  "willPayload": ""
+}, {
+  "id": "cc234500.cbcc3",
+  "type": "homekit-bridge",
+  "z": "",
+  "bridgeName": "Sheldon-NodeRed",
+  "pinCode": "031-45-154",
+  "port": "51831",
+  "allowInsecureRequest": true,
+  "manufacturer": "Default Manufacturer",
+  "model": "Default Model",
+  "serialNo": "Default Serial Number",
+  "customMdnsConfig": false,
+  "mdnsMulticast": true,
+  "mdnsInterface": "",
+  "mdnsPort": "",
+  "mdnsIp": "",
+  "mdnsTtl": "",
+  "mdnsLoopback": true,
+  "mdnsReuseAddr": true
+}]

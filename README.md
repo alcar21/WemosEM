@@ -28,7 +28,7 @@ Original Gerber files for the PCB layout and the source files for Kicad are incl
 - Optional reset Kwh counter one day of the month
 - Reset Kwh in MQTT Topic
 
-#### Components: 
+#### Components:
 - Wemos D1 Mini / D1 Mini Pro
 - [ESP8266 Mains Current Sensor](https://www.ebay.es/itm/ESP8266-Mains-Current-Sensor-Wemos-Current-transformer-SCT013-100A-50mA/133077015640)
 - Current transformer SCT013 (Ebay or Aliexpress)
@@ -38,7 +38,7 @@ Original Gerber files for the PCB layout and the source files for Kicad are incl
 
 ## Firmware installation and first setup
 
-#### Flashing: 
+#### Flashing:
 
 <img src="images/installation01.jpg" alt="installation01" align="right" width="200"/>
 
@@ -80,7 +80,7 @@ Finally, connect with IP or http://wemosem-xxxxxx.local/ and enter default user 
 Password is updatable in configuration system tab.
 
 ## Setup in Home Assistant (without MQTT autodiscovery)
-    
+
     sensor:
     - platform: mqtt
       state_topic: "wemos/wemosEM-XXXXXX/power"
@@ -104,13 +104,13 @@ Password is updatable in configuration system tab.
 ## Update Voltaje with Home Assistant
 
 if you have a Shelly EM, add a automation in Home assistant:
-      
+
       - alias: Update voltage WemosEM
         initial_state: 'on'
         trigger:
         - platform: mqtt
           topic: shellies/shellyem-B9E2E9/emeter/0/voltage
-    
+
         action:
         - service: mqtt.publish
           data_template:
@@ -143,7 +143,7 @@ Go to Blynk app on your phone and layout the blynk project with virtual pin numb
 Setup in web interface token auth, optional you can setup server and port server.
 
 ## Thingspeak Integration
-Setup in web interface token auth (Write API Key) and Channel number. 
+Setup in web interface token auth (Write API Key) and Channel number.
 - Field 1: Voltage (V)
 - Field 2: Current (A)
 - Field 3: Live Watios (w)
@@ -173,6 +173,42 @@ Other options:
 - Compile with core 2.5: pio run -t upload -e d1_mini_2_5
 - Compile for Wemos D1 Mini PRO (**only core 2.4**): pio run -t upload -e d1_mini_pro_2_4
 
+## Use case - Monitor Washer and Dryer
+
+In my use case, I used the current sensor for the Washer, and added a MPU 6050 Accelerometer and Gyroscope to monitor the dryer for vibration.
+
+<img src="images/Node-Red-Flow.png" style="max-width: 50%;height: auto;" align="right" />
+
+## Circuit Layout
+
+<img src="images/mpu breadboard.png" style="max-width: 25%;height: auto;" align="right" />
+
+
+<img src="images/mpu schematic.png" style="max-width: 25%;height: auto;" align="right" />
+
+#### Additional libraries
+
+1 - I2Cdev and MPU 6050 from https://github.com/jrowberg/i2cdevlib
+
+#### Rebuilding web package
+
+1 - Install GULP package ( npm install -g gulp )
+2 - cd ~/Code/WemosEM/WemosEM-Mqtt-Power-Sensor
+3 - npm install
+4 - ~/npm/bin/gulp
+
+#### Node-Red Flow
+
+[Node Red Flow](Washer-Dryer/washer-dryer.json)
+
+You need to update these node's for your Configuration
+
+1 - Washer/Dryer - Update MQTT topic to match your device
+2 - Alarm Function node - Update line 3 for the turn on value and line 7 for the turn off value ).  These values are based on the average of the last 24 messages received.
+3 - Washer/Dryer in Use - Update to match your HomeKit environment
+
+
+
 ## Tests
 
 ## Screenshots
@@ -182,4 +218,3 @@ Other options:
 <img src="images/screenshot03.jpg" style="max-width: 100%;height: auto;" align="center" />
 <img src="images/screenshot04.jpg" style="max-width: 100%;height: auto;" align="center" />
 <img src="images/screenshot05.jpg" style="max-width: 100%;height: auto;" align="center" />
-
