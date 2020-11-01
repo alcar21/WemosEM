@@ -80,6 +80,12 @@ void loop() {
 
   em_loop();
 
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi connection lost!");
+    ESP.restart();
+    delay(100);
+  }
+
   mqtt_client.loop();
   httpServer.handleClient(); //handles requests for the firmware update page
 
