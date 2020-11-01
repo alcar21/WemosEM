@@ -200,7 +200,13 @@ void setupWifi() {
   wifiManager.setConfigPortalTimeout(180);
   wifiManager.setConnectTimeout(60);
   Serial.println(" Wifi " + wifi_hostname + ", password " + system_password);
-  wifiManager.autoConnect(wifi_hostname.c_str(), system_password.c_str());
+  if (!wifiManager.autoConnect(wifi_hostname.c_str(), system_password.c_str())) {
+    Serial.println("failed to connect and hit timeout (restart)");
+    delay(3000);
+    //reset and try again
+    ESP.restart();
+    delay(100);
+  }
 
 
   if (isSTA() && ipMode == 1) {
