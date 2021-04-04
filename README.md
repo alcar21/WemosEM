@@ -1,5 +1,7 @@
 # WemosEM
 
+**Sorry, I have no time to work on this project. I am involved in new projects**
+
 <img src="images/wemos-sensor-stc013.jpg" style="max-width: 100%;height: auto;" align="center" />
 
 This is a fork of [@nephiel](https://github.com/Nephiel/MQTT-Power-Sensor) and [@Mottramlabs](https://github.com/Mottramlabs/MQTT-Power-Sensor) projects
@@ -34,7 +36,7 @@ Original Gerber files for the PCB layout and the source files for Kicad are incl
 - Current transformer SCT013 (Ebay or Aliexpress)
 - Optional case: https://www.thingiverse.com/thing:3544702
 
-**WARNING:** If you use calibrated clamp, **remove resistance R1** from mains current sensor.
+**WARNING:** If you use calibrated clamp, **REMOVE resistance R1** from mains current sensor.
 
 ## Firmware installation and first setup
 
@@ -78,6 +80,26 @@ Finally, connect with IP or http://wemosem-xxxxxx.local/ and enter default user 
 * **Default password: infinito&masalla**
 
 Password is updatable in configuration system tab.
+
+## Ical Value
+
+you can view the ICAL value in http://lechacal.com/wiki/index.php/Current_Transformer_Conditioner
+
+CT | Output Type | Rburden | Rgain (for 5V) | ICAL (for 5V) | Rgain (for 3.3V) | ICAL (for 3.3V)
+-- | -- | -- | -- | -- | -- | --
+SCT-013-005 | Voltage | None | 130 kΩ | 2.83 | None* | 5.0
+SCT-013-010 | Voltage | None | 130 kΩ | 5.66 | None* | 10.0
+SCT-013-015 | Voltage | None | 130 kΩ | 8.49 | None* | 15.0
+SCT-013-020 | Voltage | None | 130 kΩ | 11.31 | None* | 20.0
+SCT-013-025 | Voltage | None | 130 kΩ | 14.14 | None* | 25.0
+SCT-013-030 | Voltage | None | 130 kΩ | 16.96 | None* | 30.0
+SCT-013-050 | Voltage | None | 130 kΩ | 28.28 | None* | 50.0
+SCT-013-060 | Voltage | None | 130 kΩ | 33.94 | None* | 60.0
+  |   |   |   |  
+SCT-006 | Current | 10 Ω | 17 kΩ | 11.62 | 28 kΩ | 17.5
+SCT-013-000 | Current | 10 Ω | 40 kΩ | 56.57 | 75 kΩ | 85.71
+SCT-019 | Current | 10 Ω | 24 kΩ | 116.13 | 40 kΩ | 171.43
+
 
 ## Setup in Home Assistant (without MQTT autodiscovery)
     
